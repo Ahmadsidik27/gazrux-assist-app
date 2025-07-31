@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, Settings, FileCog, BookOpen } from 'lucide-react';
+import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
@@ -199,7 +199,7 @@ function RepairGuideDialog({ open, onOpenChange, testName }: { open: boolean; on
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><FileCog className="w-5 h-5" /> {guide.title}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2"><FileCog className="w-5 h-5 text-primary" /> {guide.title}</DialogTitle>
           <DialogDescription>Ikuti langkah-langkah ini dengan cermat. Lihat manual bengkel resmi untuk spesifikasi terperinci.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -315,13 +315,32 @@ export default function Home() {
     });
   };
 
+  const renderSkeleton = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+            <Skeleton className="h-6 w-6 rounded-full" />
+            <Skeleton className="h-6 w-48" />
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Skeleton className="h-8 w-3/4" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+        <Skeleton className="h-4 w-full" />
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <header className="border-b bg-card">
+      <header className="border-b bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <Car className="h-8 w-8 text-primary" />
+              <div className="bg-primary p-2 rounded-lg">
+                <Car className="h-6 w-6 text-primary-foreground" />
+              </div>
               <div>
                 <h1 className="text-xl font-bold tracking-tight">AutoAssist AI</h1>
                 <p className="text-sm text-muted-foreground">Partner AI Anda di garasi</p>
@@ -330,10 +349,10 @@ export default function Home() {
             <div className="flex items-center gap-4">
                <div className="relative w-48 hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Cari manual (simulasi)" className="pl-9" />
+                <Input placeholder="Cari manual (simulasi)" className="pl-9 bg-muted border-muted" />
               </div>
               <div className="flex items-center space-x-2">
-                <Label htmlFor="beginner-mode" className="text-sm font-medium">Mode Pemula</Label>
+                <Label htmlFor="beginner-mode" className="text-sm font-medium whitespace-nowrap">Mode Pemula</Label>
                 <Switch id="beginner-mode" checked={isBeginnerMode} onCheckedChange={setIsBeginnerMode} />
               </div>
             </div>
@@ -342,72 +361,65 @@ export default function Home() {
       </header>
 
       <main className="flex-1 container mx-auto p-4 md:p-8">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Wrench className="w-6 h-6 text-primary"/> Jelaskan Masalah Kendaraan</CardTitle>
-              <CardDescription>Masukkan semua gejala, suara aneh, atau kode kesalahan yang Anda miliki. Semakin detail, semakin baik diagnosisnya.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid w-full gap-2">
-                <Textarea
-                  placeholder="contoh: 'Mobilnya adalah Honda Civic 2015. Terdengar bunyi klik saat mencoba menyalakan, tetapi mesin tidak mau berputar. Lampu dasbor menyala.'"
-                  rows={5}
-                  value={issueDescription}
-                  onChange={(e) => setIssueDescription(e.target.value)}
-                  disabled={isAnalyzing}
-                />
-                <Button onClick={handleDiagnose} disabled={isAnalyzing || !issueDescription}>
-                  {isAnalyzing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isAnalyzing ? 'Menganalisis...' : 'Diagnosis Masalah'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><BookOpen className="w-6 h-6 text-primary"/> Pusat Pengetahuan Otomotif</CardTitle>
-              <CardDescription>Punya pertanyaan tentang teknologi atau istilah otomotif? Tanyakan di sini.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Input
-                  placeholder="contoh: 'Apa itu ADAS?' atau 'Cara kerja mesin VVT-i'"
-                  value={knowledgeQuery}
-                  onChange={(e) => setKnowledgeQuery(e.target.value)}
-                  disabled={isExplaining}
-                />
-                <Button onClick={handleExplainConcept} disabled={isExplaining || !knowledgeQuery}>
-                  {isExplaining && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Jelaskan
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="max-w-4xl mx-auto space-y-8">
           
-          {(isAnalyzing || isExplaining) && (
-            <Card>
+          <div className="grid md:grid-cols-2 gap-8">
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Lightbulb className="w-6 h-6 text-primary" />AI Sedang Bekerja...</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Wrench className="w-6 h-6 text-primary"/> Alat Diagnosis</CardTitle>
+                <CardDescription>Jelaskan masalah kendaraan untuk mendapatkan analisis dan kemungkinan penyebab.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-5/6" />
-                <Skeleton className="h-4 w-full" />
+              <CardContent>
+                <div className="grid w-full gap-2">
+                  <Textarea
+                    placeholder="contoh: 'Honda Civic 2015. Bunyi klik saat start, tapi mesin tidak mau berputar. Lampu dasbor menyala...'"
+                    rows={5}
+                    value={issueDescription}
+                    onChange={(e) => setIssueDescription(e.target.value)}
+                    disabled={isAnalyzing}
+                    className="text-base"
+                  />
+                  <Button onClick={handleDiagnose} disabled={isAnalyzing || !issueDescription} size="lg">
+                    {isAnalyzing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isAnalyzing ? 'Menganalisis...' : 'Diagnosis Masalah'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
-          )}
+
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><BookOpen className="w-6 h-6 text-primary"/> Pusat Pengetahuan</CardTitle>
+                <CardDescription>Punya pertanyaan tentang teknologi atau istilah otomotif? Tanyakan di sini.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col h-full justify-between gap-2">
+                  <Input
+                    placeholder="contoh: 'Apa itu ADAS?' atau 'Cara kerja VVT-i'"
+                    value={knowledgeQuery}
+                    onChange={(e) => setKnowledgeQuery(e.target.value)}
+                    disabled={isExplaining}
+                    className="text-base"
+                  />
+                  <Button onClick={handleExplainConcept} disabled={isExplaining || !knowledgeQuery} variant="secondary" size="lg">
+                    {isExplaining && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Jelaskan Konsep
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {(isAnalyzing || isExplaining) && renderSkeleton()}
 
           {knowledgeResult && !isExplaining && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="w-6 h-6 text-primary" /> Penjelasan untuk: {knowledgeQuery}
+                  <BookOpen className="w-6 h-6 text-primary" /> Penjelasan untuk: "{knowledgeQuery}"
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
                 <MarkdownContent content={knowledgeResult.explanation} />
               </CardContent>
             </Card>
@@ -417,12 +429,12 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><FileText className="w-6 h-6 text-primary" /> Hasil Diagnosis</CardTitle>
-                <CardDescription>Berdasarkan deskripsi Anda, berikut adalah kemungkinan penyebab dan beberapa pertanyaan klarifikasi.</CardDescription>
+                <CardDescription>Berdasarkan deskripsi Anda, berikut adalah kemungkinan penyebab dan pertanyaan klarifikasi.</CardDescription>
               </CardHeader>
               <CardContent>
                 {isBeginnerMode && (
-                  <Alert className="mb-4 bg-primary/10 border-primary/20">
-                    <Lightbulb className="h-4 w-4" />
+                  <Alert className="mb-4 border-accent bg-accent/10 text-accent-foreground">
+                    <Lightbulb className="h-4 w-4 text-accent" />
                     <AlertTitle>Tips untuk Pemula</AlertTitle>
                     <AlertDescription>Ini hanyalah kemungkinan penyebab. Menjalankan tes yang disarankan sangat penting untuk memastikan masalah sebenarnya.</AlertDescription>
                   </Alert>
@@ -430,18 +442,18 @@ export default function Home() {
                 <Accordion type="multiple" defaultValue={['causes']} className="w-full">
                   {analysis.possibleCauses.length > 0 && (
                   <AccordionItem value="causes">
-                    <AccordionTrigger className="text-base font-semibold">Kemungkinan Penyebab</AccordionTrigger>
-                    <AccordionContent className="space-y-4 pt-2">
+                    <AccordionTrigger className="text-lg font-semibold">Kemungkinan Penyebab</AccordionTrigger>
+                    <AccordionContent className="space-y-4 pt-4">
                       {analysis.possibleCauses.map((causeInfo, i) => (
-                        <div key={i} className="p-3 border rounded-lg bg-background">
-                          <p className="font-medium">{causeInfo.cause}</p>
+                        <div key={i} className="p-4 border rounded-lg bg-card shadow-sm">
+                          <p className="font-semibold text-base">{causeInfo.cause}</p>
                           <div className="mt-2 text-sm text-muted-foreground">
                             <MarkdownContent content={causeInfo.details} />
                           </div>
                           <Button 
-                            variant="secondary"
+                            variant="outline"
                             size="sm"
-                            className="mt-2"
+                            className="mt-4"
                             onClick={() => handleSuggestTests(causeInfo.cause)}
                             disabled={testSuggestions[causeInfo.cause]?.loading || isSuggesting}
                           >
@@ -460,12 +472,12 @@ export default function Home() {
                           )}
                           
                           {testSuggestions[causeInfo.cause]?.data && (
-                            <div className="mt-4 pl-4 border-l-2 border-primary/50 space-y-2">
-                              <h4 className="font-semibold text-sm">Tes yang Disarankan:</h4>
+                            <div className="mt-4 pl-4 border-l-4 border-primary/50 space-y-2">
+                              <h4 className="font-semibold">Tes yang Disarankan:</h4>
                               <ul className="list-none space-y-2">
                                 {testSuggestions[causeInfo.cause]!.data!.split('\n').filter(line => line.trim()).map((test, testIndex) => (
                                   <li key={testIndex}>
-                                    <button onClick={() => setDialogTest(test)} className="w-full text-left p-2 rounded-md hover:bg-accent/50 transition-colors flex items-center justify-between group">
+                                    <button onClick={() => setDialogTest(test)} className="w-full text-left p-2 rounded-md hover:bg-accent/10 transition-colors flex items-center justify-between group">
                                       <span className="text-sm">{test.replace(/^\d+\.\s*/, '')}</span>
                                       <ChevronsRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </button>
@@ -481,7 +493,7 @@ export default function Home() {
                   )}
                   {analysis.clarificationQuestions && analysis.clarificationQuestions.length > 0 && (
                     <AccordionItem value="questions">
-                      <AccordionTrigger className="text-base font-semibold">Pertanyaan Klarifikasi</AccordionTrigger>
+                      <AccordionTrigger className="text-lg font-semibold">Pertanyaan Klarifikasi</AccordionTrigger>
                       <AccordionContent className="pt-2">
                          <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                             {analysis.clarificationQuestions.map((q, i) => <li key={i}>{q}</li>)}
@@ -495,8 +507,6 @@ export default function Home() {
           )}
         </div>
       </main>
-
-      <RepairGuideDialog open={!!dialogTest} onOpenChange={(isOpen) => !isOpen && setDialogTest(null)} testName={dialogTest} />
     </div>
   );
 }
