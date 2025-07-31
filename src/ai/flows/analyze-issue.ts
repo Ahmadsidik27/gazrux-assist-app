@@ -21,7 +21,7 @@ const AnalyzeIssueOutputSchema = z.object({
   possibleCauses: z.array(
     z.object({
       cause: z.string().describe('Kemungkinan penyebab dari masalah kendaraan yang dijelaskan.'),
-      details: z.string().describe('Penjelasan rinci tentang penyebab ini, dapat mencakup tabel atau gambar berformat Markdown.'),
+      details: z.string().describe('Penjelasan rinci tentang penyebab ini, diformat sebagai daftar atau tabel Markdown.'),
     })
   ).describe('Daftar kemungkinan penyebab masalah kendaraan yang dijelaskan, diurutkan berdasarkan probabilitas.'),
   clarificationQuestions: z.array(
@@ -43,7 +43,7 @@ const analyzeIssuePrompt = ai.definePrompt({
 
 Mekanik telah menjelaskan masalah berikut: {{{issueDescription}}}
 
-Berdasarkan deskripsi ini, berikan daftar kemungkinan penyebab masalah, diurutkan berdasarkan probabilitas (paling mungkin terlebih dahulu). Untuk setiap penyebab, berikan nama penyebab ('cause') dan penjelasan rinci ('details'). Penjelasan rinci harus mudah dipahami. Jika penjelasannya panjang, gunakan daftar bernomor atau poin-poin untuk memecahnya. Penjelasan juga dapat mencakup tabel berformat Markdown untuk data terstruktur atau tautan gambar jika relevan. Gunakan alat googleSearch untuk mencari informasi tentang kendaraan dan masalah untuk memberikan diagnosis yang lebih akurat.
+Berdasarkan deskripsi ini, berikan daftar kemungkinan penyebab masalah, diurutkan berdasarkan probabilitas (paling mungkin terlebih dahulu). Untuk setiap penyebab, berikan nama penyebab ('cause') dan penjelasan rinci ('details'). Penjelasan rinci ('details') HARUS selalu dalam format daftar (bernomor atau poin) atau tabel Markdown untuk memastikan keterbacaan. Jangan gunakan paragraf. Gunakan alat googleSearch untuk mencari informasi tentang kendaraan dan masalah untuk memberikan diagnosis yang lebih akurat.
 
 Contoh format tabel Markdown:
 | Komponen | Status | Rekomendasi |
@@ -51,10 +51,12 @@ Contoh format tabel Markdown:
 | Baterai | Lemah | Isi daya atau ganti |
 | Alternator | Tidak mengisi daya | Periksa sabuk dan koneksi |
 
-Contoh format gambar Markdown:
-![Diagram sistem pengapian](https://placehold.co/400x300.png)
+Contoh format daftar:
+- Periksa koneksi baterai dari korosi.
+- Pastikan terminal kencang.
+- Uji tegangan baterai dengan multimeter.
 
-Jika deskripsinya tidak jelas atau tidak jelas, berikan daftar pertanyaan untuk diajukan kepada mekanik untuk mengklarifikasi masalah.
+Jika deskripsinya tidak jelas atau tidak jelas, berikan daftar pertanyaan klarifikasi.
 
 Keluarkan kemungkinan penyebab (dengan detail) dan pertanyaan klarifikasi (jika ada) dalam format JSON.
 `,
