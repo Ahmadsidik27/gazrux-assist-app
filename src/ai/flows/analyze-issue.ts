@@ -43,7 +43,7 @@ const analyzeIssuePrompt = ai.definePrompt({
 
 Mekanik telah menjelaskan masalah berikut: {{{issueDescription}}}
 
-Berdasarkan deskripsi ini, berikan daftar kemungkinan penyebab masalah, diurutkan berdasarkan probabilitas (paling mungkin terlebih dahulu). Untuk setiap penyebab, berikan nama penyebab ('cause') dan penjelasan rinci ('details'). Penjelasan rinci harus mudah dipahami dan dapat mencakup tabel berformat Markdown untuk data terstruktur atau tautan gambar jika relevan. Gunakan alat googleSearch untuk mencari informasi tentang kendaraan dan masalah untuk memberikan diagnosis yang lebih akurat.
+Berdasarkan deskripsi ini, berikan daftar kemungkinan penyebab masalah, diurutkan berdasarkan probabilitas (paling mungkin terlebih dahulu). Untuk setiap penyebab, berikan nama penyebab ('cause') dan penjelasan rinci ('details'). Penjelasan rinci harus mudah dipahami. Jika penjelasannya panjang, gunakan daftar bernomor atau poin-poin untuk memecahnya. Penjelasan juga dapat mencakup tabel berformat Markdown untuk data terstruktur atau tautan gambar jika relevan. Gunakan alat googleSearch untuk mencari informasi tentang kendaraan dan masalah untuk memberikan diagnosis yang lebih akurat.
 
 Contoh format tabel Markdown:
 | Komponen | Status | Rekomendasi |
