@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {googleSearch} from '../tools/google-search';
 
 const AnalyzeIssueInputSchema = z.object({
   issueDescription: z.string().describe('The description of the vehicle issue provided by the mechanic.'),
@@ -34,11 +35,12 @@ const analyzeIssuePrompt = ai.definePrompt({
   name: 'analyzeIssuePrompt',
   input: {schema: AnalyzeIssueInputSchema},
   output: {schema: AnalyzeIssueOutputSchema},
+  tools: [googleSearch],
   prompt: `You are an AI assistant helping mechanics diagnose vehicle issues.
 
 The mechanic has described the following issue: {{{issueDescription}}}
 
-Based on this description, provide a list of possible causes for the issue, ordered by probability (most likely first). If the description is vague or unclear, provide a list of questions to ask the mechanic in order to clarify the issue. The questions should be specific and relevant to narrowing down the possible causes.
+Based on this description, provide a list of possible causes for the issue, ordered by probability (most likely first). Use the googleSearch tool to look up information about the vehicle and issue to provide a more accurate diagnosis. If the description is vague or unclear, provide a list of questions to ask the mechanic in order to clarify the issue. The questions should be specific and relevant to narrowing down the possible causes.
 
 Output the possible causes and clarification questions (if any) in a JSON format.
 `,
