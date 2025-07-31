@@ -63,7 +63,8 @@ export const searchGoogleDrive = ai.defineTool(
       return { files };
     } catch (error: any) {
       console.error('Error searching Google Drive:', error.message);
-      // Mengembalikan array kosong jika terjadi kesalahan agar tidak menghentikan alur
+      // Mengembalikan array kosong jika terjadi error agar aplikasi tidak crash.
+      // Pertimbangkan untuk memberikan pesan error yang lebih informatif kepada pengguna jika diperlukan.
       return { files: [] };
     }
   }
