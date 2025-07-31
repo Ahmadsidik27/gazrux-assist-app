@@ -11,6 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {googleSearch} from '../tools/google-search';
+import { searchGoogleDrive } from '../tools/google-drive-search';
 
 const AnalyzeIssueInputSchema = z.object({
   issueDescription: z.string().describe('Deskripsi masalah kendaraan yang diberikan oleh mekanik.'),
@@ -38,12 +39,17 @@ const analyzeIssuePrompt = ai.definePrompt({
   name: 'analyzeIssuePrompt',
   input: {schema: AnalyzeIssueInputSchema},
   output: {schema: AnalyzeIssueOutputSchema},
-  tools: [googleSearch],
+  tools: [googleSearch, searchGoogleDrive],
   prompt: `Anda adalah asisten AI yang membantu mekanik mendiagnosis masalah kendaraan.
 
 Mekanik telah menjelaskan masalah berikut: {{{issueDescription}}}
 
-Berdasarkan deskripsi ini, berikan daftar kemungkinan penyebab masalah, diurutkan berdasarkan probabilitas (paling mungkin terlebih dahulu). Untuk setiap penyebab, berikan nama penyebab ('cause') dan penjelasan rinci ('details'). Penjelasan rinci ('details') HARUS selalu dalam format daftar (bernomor atau poin) atau tabel Markdown untuk memastikan keterbacaan. Jangan gunakan paragraf. Gunakan alat googleSearch untuk mencari informasi tentang kendaraan dan masalah untuk memberikan diagnosis yang lebih akurat.
+Berdasarkan deskripsi ini, berikan daftar kemungkinan penyebab masalah, diurutkan berdasarkan probabilitas (paling mungkin terlebih dahulu). Untuk setiap penyebab, berikan nama penyebab ('cause') dan penjelasan rinci ('details'). Penjelasan rinci ('details') HARUS selalu dalam format daftar (bernomor atau poin) atau tabel Markdown untuk memastikan keterbacaan. Jangan gunakan paragraf. 
+
+Gunakan alat yang tersedia untuk mencari informasi tambahan:
+- Gunakan 'searchGoogleDrive' untuk mencari manual perbaikan, buletin layanan teknis (TSB), atau diagram pengkabelan yang relevan di Google Drive.
+- Gunakan 'googleSearch' untuk mencari informasi umum, masalah yang diketahui, dan prosedur perbaikan dari web.
+- Prioritaskan informasi dari Google Drive jika tersedia, karena itu adalah sumber internal.
 
 Contoh format tabel Markdown:
 | Komponen | Status | Rekomendasi |
