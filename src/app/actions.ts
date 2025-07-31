@@ -2,6 +2,7 @@
 
 import { analyzeIssue as analyzeIssueFlow } from '@/ai/flows/analyze-issue';
 import { suggestTests as suggestTestsFlow } from '@/ai/flows/suggest-tests';
+import { explainConcept as explainConceptFlow } from '@/ai/flows/explain-concept';
 
 export async function analyzeIssue(issueDescription: string) {
   if (!issueDescription || issueDescription.trim().length < 10) {
@@ -30,4 +31,17 @@ export async function suggestTests(issueDescription: string, potentialCause: str
         console.error('Error in suggestTests action:', error);
         throw new Error('Gagal berkomunikasi dengan layanan AI. Silakan coba lagi nanti.');
     }
+}
+
+export async function explainConcept(topic: string) {
+  if (!topic || topic.trim().length < 2) {
+    throw new Error('Harap berikan topik yang valid untuk dijelaskan.');
+  }
+  try {
+    const result = await explainConceptFlow({ topic });
+    return result;
+  } catch (error) {
+    console.error('Error in explainConcept action:', error);
+    throw new Error('Gagal berkomunikasi dengan layanan AI. Silakan coba lagi nanti.');
+  }
 }

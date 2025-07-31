@@ -3,7 +3,8 @@
 import { useState, useTransition, Fragment } from 'react';
 import Image from 'next/image';
 import type { AnalyzeIssueOutput } from '@/ai/flows/analyze-issue';
-import { analyzeIssue, suggestTests } from './actions';
+import { analyzeIssue, suggestTests, explainConcept } from './actions';
+import type { ExplainConceptOutput } from '@/ai/flows/explain-concept';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, Settings, FileCog } from 'lucide-react';
+import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, Settings, FileCog, BookOpen } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
@@ -74,61 +75,105 @@ const findRepairGuide = (testName: string): RepairGuide | null => {
 };
 
 function MarkdownContent({ content }: { content: string }) {
-  const parts = content.split(/(!\[.*?\]\(.*?\)|\|.*?\|)/g).filter(Boolean);
+  // A more robust regex to handle various Markdown elements gracefully.
+  const parts = content.split(/(\n\n|`{3}[\s\S]*?`{3}|!\[.*?\]\(.*?\)|\|-+\|)/g).filter(Boolean);
+
+  let inTable = false;
+  let tableRows: string[][] = [];
+
+  const renderTable = () => {
+    if (tableRows.length < 2) return null;
+    const header = tableRows[0];
+    const body = tableRows.slice(1);
+    const renderedTable = (
+      <div className="my-4 overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {header.map((head, i) => <TableHead key={i}>{head}</TableHead>)}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {body.map((row, i) => (
+              <TableRow key={i}>
+                {row.map((cell, j) => <TableCell key={j}>{cell}</TableCell>)}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
+    tableRows = [];
+    return renderedTable;
+  };
 
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none">
       {parts.map((part, index) => {
-        const imageMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
-        if (imageMatch) {
-          const alt = imageMatch[1];
-          const src = imageMatch[2];
-          return (
-            <div key={index} className="my-4 flex justify-center">
-              <Image
-                src={src}
-                alt={alt}
-                width={400}
-                height={300}
-                className="rounded-lg border shadow-sm"
-                data-ai-hint={alt.toLowerCase()}
-              />
-            </div>
-          );
+        // Handle images
+        if (part.startsWith('![')) {
+          const imageMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
+          if (imageMatch) {
+            const alt = imageMatch[1];
+            const src = imageMatch[2];
+            return (
+              <div key={index} className="my-4 flex justify-center">
+                <Image
+                  src={src}
+                  alt={alt}
+                  width={400}
+                  height={300}
+                  className="rounded-lg border shadow-sm"
+                  data-ai-hint={alt.toLowerCase().split(' ').slice(0, 2).join(' ')}
+                />
+              </div>
+            );
+          }
         }
         
-        const tableMatch = part.match(/\|(.*?)\|/);
-        if (tableMatch) {
-          const rows = content.split('\n').map(row => row.split('|').map(cell => cell.trim()).filter(cell => cell));
-          if (rows.length < 2) return <p key={index}>{part}</p>;
-          const header = rows[0];
-          const body = rows.slice(2); 
-
-          return (
-             <div key={index} className="my-4 overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {header.map((head, i) => <TableHead key={i}>{head}</TableHead>)}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {body.map((row, i) => (
-                    <TableRow key={i}>
-                      {row.map((cell, j) => <TableCell key={j}>{cell}</TableCell>)}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          );
+        // Handle code blocks
+        if (part.startsWith('```')) {
+            return (
+                <pre key={index} className="bg-muted p-3 rounded-md overflow-x-auto">
+                    <code>{part.replace(/```/g, '')}</code>
+                </pre>
+            );
         }
 
-        return <p key={index}>{part}</p>
+        // Handle tables
+        if (part.includes('|')) {
+          const rows = part.split('\n').filter(row => row.trim().startsWith('|') && row.trim().endsWith('|'));
+          rows.forEach(row => {
+            const cells = row.split('|').map(cell => cell.trim()).slice(1, -1);
+            if (cells.length > 0 && !/^-+$/.test(cells[0])) { // Ignore separator line
+              tableRows.push(cells);
+            }
+          });
+          // If this is the last part or the next part isn't a table part, render the table
+          const nextPartIsTable = index + 1 < parts.length && parts[index+1].includes('|');
+          if (!nextPartIsTable && tableRows.length > 0) {
+            return <Fragment key={index}>{renderTable()}</Fragment>;
+          }
+          return null;
+        }
+
+        // Handle lists and paragraphs
+        const listItems = part.trim().split('\n').map(line => line.trim());
+        if (listItems.every(item => item.startsWith('- ') || item.startsWith('* ') || /^\d+\.\s/.test(item))) {
+            return (
+                <ul key={index} className="list-disc pl-5 space-y-1">
+                    {listItems.map((item, i) => <li key={i}>{item.replace(/(- |\* |^\d+\.\s)/, '')}</li>)}
+                </ul>
+            );
+        }
+        
+        // Default to paragraph
+        return part.trim() && <p key={index}>{part.trim()}</p>;
       })}
     </div>
   );
 }
+
 
 function RepairGuideDialog({ open, onOpenChange, testName }: { open: boolean; onOpenChange: (open: boolean) => void; testName: string | null }) {
   if (!testName) return null;
@@ -188,12 +233,17 @@ export default function Home() {
   const { toast } = useToast();
   const [isAnalyzing, startAnalysisTransition] = useTransition();
   const [isSuggesting, startSuggestionTransition] = useTransition();
+  const [isExplaining, startExplanationTransition] = useTransition();
+
 
   const [issueDescription, setIssueDescription] = useState('');
   const [analysis, setAnalysis] = useState<AnalyzeIssueOutput | null>(null);
   const [testSuggestions, setTestSuggestions] = useState<TestSuggestionsState>({});
   const [isBeginnerMode, setIsBeginnerMode] = useState(false);
   const [dialogTest, setDialogTest] = useState<string | null>(null);
+  
+  const [knowledgeQuery, setKnowledgeQuery] = useState('');
+  const [knowledgeResult, setKnowledgeResult] = useState<ExplainConceptOutput | null>(null);
 
   const handleDiagnose = async () => {
     if (issueDescription.trim().length < 10) {
@@ -208,6 +258,7 @@ export default function Home() {
     startAnalysisTransition(async () => {
       setAnalysis(null);
       setTestSuggestions({});
+      setKnowledgeResult(null); 
       try {
         const result = await analyzeIssue(issueDescription);
         setAnalysis(result);
@@ -234,6 +285,31 @@ export default function Home() {
           variant: 'destructive',
           title: 'Tidak dapat memperoleh saran',
           description: errorMsg,
+        });
+      }
+    });
+  };
+
+  const handleExplainConcept = async () => {
+    if (knowledgeQuery.trim().length < 2) {
+      toast({
+        variant: 'destructive',
+        title: 'Kesalahan Input',
+        description: 'Harap masukkan topik yang ingin Anda ketahui.',
+      });
+      return;
+    }
+    startExplanationTransition(async () => {
+      setKnowledgeResult(null);
+      setAnalysis(null);
+      try {
+        const result = await explainConcept(knowledgeQuery);
+        setKnowledgeResult(result);
+      } catch (e) {
+        toast({
+          variant: 'destructive',
+          title: 'Penjelasan Gagal',
+          description: e instanceof Error ? e.message : 'Terjadi kesalahan yang tidak diketahui.',
         });
       }
     });
@@ -288,17 +364,51 @@ export default function Home() {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><BookOpen className="w-6 h-6 text-primary"/> Pusat Pengetahuan Otomotif</CardTitle>
+              <CardDescription>Punya pertanyaan tentang teknologi atau istilah otomotif? Tanyakan di sini.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="contoh: 'Apa itu ADAS?' atau 'Cara kerja mesin VVT-i'"
+                  value={knowledgeQuery}
+                  onChange={(e) => setKnowledgeQuery(e.target.value)}
+                  disabled={isExplaining}
+                />
+                <Button onClick={handleExplainConcept} disabled={isExplaining || !knowledgeQuery}>
+                  {isExplaining && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Jelaskan
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
           
-          {isAnalyzing && (
+          {(isAnalyzing || isExplaining) && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Lightbulb className="w-6 h-6 text-primary" />Diagnosis AI Sedang Berlangsung</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Lightbulb className="w-6 h-6 text-primary" />AI Sedang Bekerja...</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Skeleton className="h-8 w-3/4" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-5/6" />
                 <Skeleton className="h-4 w-full" />
+              </CardContent>
+            </Card>
+          )}
+
+          {knowledgeResult && !isExplaining && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="w-6 h-6 text-primary" /> Penjelasan untuk: {knowledgeQuery}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MarkdownContent content={knowledgeResult.explanation} />
               </CardContent>
             </Card>
           )}
