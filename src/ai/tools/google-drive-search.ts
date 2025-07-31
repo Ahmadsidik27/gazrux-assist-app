@@ -18,14 +18,14 @@ const FileSearchResultSchema = z.object({
   snippet: z.string().optional().describe("Cuplikan konten file yang relevan dengan kueri."),
 });
 
-// ID folder Google Drive yang ditargetkan untuk pencarian manual.
-// PENTING: Folder ini DAN SEMUA FILE DI DALAMNYA harus dibagikan secara publik ("Siapa saja yang memiliki link").
+// PENTING: ID folder Google Drive yang ditargetkan untuk pencarian.
+// Folder ini DAN SEMUA FILE DI DALAMNYA harus dapat diakses oleh akun layanan atau dibagikan secara publik.
 const DRIVE_FOLDER_ID = '0B9pVa3_DLWq7Q2FNcFdaMHFwdVE';
 
 export const searchGoogleDrive = ai.defineTool(
   {
     name: 'searchGoogleDrive',
-    description: `Mencari file di dalam folder Google Drive bengkel yang spesifik (${DRIVE_FOLDER_ID}). Berguna untuk menemukan manual perbaikan, buletin layanan teknis (TSB), dan dokumentasi internal lainnya. PENTING: Alat ini hanya dapat menemukan file yang izin berbaginya diatur ke "Siapa saja yang memiliki link".`,
+    description: `Mencari file di dalam folder Google Drive bengkel yang spesifik (${DRIVE_FOLDER_ID}). Berguna untuk menemukan manual perbaikan, buletin layanan teknis (TSB), dan dokumentasi internal lainnya.`,
     inputSchema: z.object({
       query: z.string().describe('Kueri pencarian (misalnya, "manual perbaikan Honda Civic 2015 P0301").'),
     }),
@@ -36,8 +36,6 @@ export const searchGoogleDrive = ai.defineTool(
   async (input) => {
     try {
       // Inisialisasi Google Drive API Client
-      // Menggunakan Kunci API, yang berarti HANYA file yang dibagikan secara PUBLIK yang dapat ditemukan.
-      // Ini termasuk folder target dan setiap file di dalamnya.
       const drive = google.drive({
         version: 'v3',
         auth: process.env.GOOGLE_API_KEY, 
