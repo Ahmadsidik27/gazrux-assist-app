@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen } from 'lucide-react';
+import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
@@ -229,6 +229,24 @@ function RepairGuideDialog({ open, onOpenChange, testName }: { open: boolean; on
   );
 }
 
+const GazruxLogo = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className="h-8 w-8 text-primary-foreground"
+    style={{ transform: 'rotate(-15deg)' }}
+  >
+    <g transform="rotate(15, 12, 12)">
+      <path d="M19.46,12.55,17.3,10.1a1,1,0,0,0-1.42,0L4.54,21.46a1,1,0,0,0,0,1.42L6.9,25.1a1,1,0,0,0,1.42,0L19.68,13.9a1,1,0,0,0,0-1.42ZM8,22.88l-1.46-1.46L13.1,14.85,14.5,16.27Z" transform="translate(-2 -3.5)" />
+      <path d="M25.32,6.85,22.8,4.32a1,1,0,0,0-1.42,0L12.53,13.2a1,1,0,0,0,0,1.42L15,16.85a1,1,0,0,0,1.42,0L25.32,8.27a1,1,0,0,0,0-1.42ZM14.24,14L13.1,12.89l5.63-5.63L20.14,8.7Z" transform="translate(-2 -3.5)" />
+      <path d="M13.41,2,10.24,5.17a3,3,0,0,0,4.24,4.24L17.66,6.23A5,5,0,1,0,13.41,2Zm1.56,6.33a1,1,0,1,1,0-1.41,1,1,0,0,1,0,1.41Z" transform="translate(-2 -3.5)" />
+      <path d="M11.72,13.2a1,1,0,0,0-1.42,0l-9,9A1,1,0,0,0,2.68,24H7.32a1,1,0,0,0,.71-.29l9-9a1,1,0,0,0,0-1.42Z" transform="translate(-2 -3.5)" />
+    </g>
+  </svg>
+);
+
+
 export default function Home() {
   const { toast } = useToast();
   const [isAnalyzing, startAnalysisTransition] = useTransition();
@@ -339,10 +357,10 @@ export default function Home() {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div className="bg-primary p-2 rounded-lg">
-                <Car className="h-6 w-6 text-primary-foreground" />
+                <GazruxLogo />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight">AutoAssist AI</h1>
+                <h1 className="text-xl font-bold tracking-tight">Gazrux Assist</h1>
                 <p className="text-sm text-muted-foreground">Partner AI Anda di garasi</p>
               </div>
             </div>
@@ -507,6 +525,7 @@ export default function Home() {
           )}
         </div>
       </main>
+      <RepairGuideDialog open={!!dialogTest} onOpenChange={(open) => !open && setDialogTest(null)} testName={dialogTest} />
     </div>
   );
 }
