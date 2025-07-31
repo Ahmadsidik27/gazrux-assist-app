@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal } from 'lucide-react';
+import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal, HelpCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
@@ -457,6 +457,19 @@ export default function Home() {
                     <AlertDescription>Ini hanyalah kemungkinan penyebab. Menjalankan tes yang disarankan sangat penting untuk memastikan masalah sebenarnya.</AlertDescription>
                   </Alert>
                 )}
+
+                {analysis.clarificationQuestions && analysis.clarificationQuestions.length > 0 && (
+                   <Alert className="mb-4">
+                    <HelpCircle className="h-4 w-4" />
+                    <AlertTitle>Pertanyaan Klarifikasi</AlertTitle>
+                    <AlertDescription>
+                       <ul className="list-disc list-inside space-y-2 mt-2">
+                          {analysis.clarificationQuestions.map((q, i) => <li key={i}>{q}</li>)}
+                       </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <Accordion type="multiple" defaultValue={['causes']} className="w-full">
                   {analysis.possibleCauses.length > 0 && (
                   <AccordionItem value="causes">
@@ -508,16 +521,6 @@ export default function Home() {
                       ))}
                     </AccordionContent>
                   </AccordionItem>
-                  )}
-                  {analysis.clarificationQuestions && analysis.clarificationQuestions.length > 0 && (
-                    <AccordionItem value="questions">
-                      <AccordionTrigger className="text-lg font-semibold">Pertanyaan Klarifikasi</AccordionTrigger>
-                      <AccordionContent className="pt-2">
-                         <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                            {analysis.clarificationQuestions.map((q, i) => <li key={i}>{q}</li>)}
-                         </ul>
-                      </AccordionContent>
-                    </AccordionItem>
                   )}
                 </Accordion>
               </CardContent>
