@@ -3,8 +3,10 @@
 import { useState, useTransition, Fragment } from 'react';
 import Image from 'next/image';
 import type { AnalyzeIssueOutput } from '@/ai/flows/analyze-issue';
-import { analyzeIssue, suggestTests, explainConcept } from './actions';
+import { analyzeIssue, suggestTests, explainConcept, findManual } from './actions';
 import type { ExplainConceptOutput } from '@/ai/flows/explain-concept';
+import type { FindManualOutput } from '@/ai/flows/find-manual';
+
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,8 +19,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal, HelpCircle, FileType } from 'lucide-react';
+import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal, HelpCircle, FileType, FileSearch, Link as LinkIcon, HardDrive } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
 
@@ -287,6 +290,7 @@ export default function Home() {
   const [isAnalyzing, startAnalysisTransition] = useTransition();
   const [isSuggesting, startSuggestionTransition] = useTransition();
   const [isExplaining, startExplanationTransition] = useTransition();
+  const [isFinding, startFindingTransition] = useTransition();
 
 
   const [issueDescription, setIssueDescription] = useState('');
@@ -297,6 +301,17 @@ export default function Home() {
   
   const [knowledgeQuery, setKnowledgeQuery] = useState('');
   const [knowledgeResult, setKnowledgeResult] = useState<ExplainConceptOutput | null>(null);
+
+  const [manualQuery, setManualQuery] = useState('');
+  const [manualResult, setManualResult] = useState<FindManualOutput | null>(null);
+
+
+  const clearState = () => {
+    setAnalysis(null);
+    setTestSuggestions({});
+    setKnowledgeResult(null);
+    setManualResult(null);
+  }
 
   const handleDiagnose = async () => {
     if (issueDescription.trim().length < 10) {
@@ -309,9 +324,7 @@ export default function Home() {
     }
     
     startAnalysisTransition(async () => {
-      setAnalysis(null);
-      setTestSuggestions({});
-      setKnowledgeResult(null); 
+      clearState();
       try {
         const result = await analyzeIssue(issueDescription);
         setAnalysis(result);
@@ -353,8 +366,7 @@ export default function Home() {
       return;
     }
     startExplanationTransition(async () => {
-      setKnowledgeResult(null);
-      setAnalysis(null);
+      clearState();
       try {
         const result = await explainConcept(knowledgeQuery);
         setKnowledgeResult(result);
@@ -362,6 +374,30 @@ export default function Home() {
         toast({
           variant: 'destructive',
           title: 'Penjelasan Gagal',
+          description: e instanceof Error ? e.message : 'Terjadi kesalahan yang tidak diketahui.',
+        });
+      }
+    });
+  };
+
+  const handleFindManual = async () => {
+    if (manualQuery.trim().length < 3) {
+      toast({
+        variant: 'destructive',
+        title: 'Kesalahan Input',
+        description: 'Harap berikan kueri pencarian yang lebih spesifik.',
+      });
+      return;
+    }
+    startFindingTransition(async () => {
+      clearState();
+      try {
+        const result = await findManual(manualQuery);
+        setManualResult(result);
+      } catch (e) {
+        toast({
+          variant: 'destructive',
+          title: 'Pencarian Manual Gagal',
           description: e instanceof Error ? e.message : 'Terjadi kesalahan yang tidak diketahui.',
         });
       }
@@ -414,9 +450,10 @@ export default function Home() {
       </header>
 
       <main className="flex-1 container mx-auto p-4 md:p-8">
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          <div className="grid md:grid-cols-2 gap-8">
+          {/* Main Column */}
+          <div className="lg:col-span-2 space-y-8">
             <Card className="shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Wrench className="w-6 h-6 text-primary"/> Alat Diagnosis</CardTitle>
@@ -440,15 +477,173 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+            {(isAnalyzing || isExplaining || isFinding) && renderSkeleton()}
+
+            {knowledgeResult && !isExplaining && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="w-6 h-6 text-primary" /> Penjelasan untuk: "{knowledgeQuery}"
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                  <MarkdownContent content={knowledgeResult.explanation} />
+                </CardContent>
+              </Card>
+            )}
+
+            {manualResult && !isFinding && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileSearch className="w-6 h-6 text-primary" /> Hasil Pencarian Manual untuk: "{manualQuery}"
+                  </CardTitle>
+                  <CardDescription>
+                    Menampilkan {manualResult.results.length} hasil yang paling relevan dari Google Drive dan Web.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {manualResult.results.length === 0 ? (
+                      <p className="text-muted-foreground text-center">Tidak ada manual yang cocok ditemukan.</p>
+                  ) : (
+                    manualResult.results.map((result, index) => (
+                      <a key={index} href={result.link} target="_blank" rel="noopener noreferrer" className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="flex items-start gap-3">
+                            {result.source === 'Google Drive' ? <HardDrive className="w-5 h-5 mt-1 text-primary"/> : <LinkIcon className="w-5 h-5 mt-1 text-primary"/>}
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold text-base">{result.title}</p>
+                                  {result.isPdf && <Badge variant="destructive">PDF</Badge>}
+                                  <Badge variant="secondary">{result.source}</Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">{result.snippet}</p>
+                            </div>
+                        </div>
+                      </a>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {analysis && !isAnalyzing && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><FileText className="w-6 h-6 text-primary" /> Hasil Diagnosis</CardTitle>
+                  <CardDescription>Berdasarkan deskripsi Anda, berikut adalah kemungkinan penyebab dan pertanyaan klarifikasi.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {isBeginnerMode && (
+                    <Alert className="mb-4 border-accent bg-accent/10 text-accent-foreground">
+                      <Lightbulb className="h-4 w-4 text-accent" />
+                      <AlertTitle>Tips untuk Pemula</AlertTitle>
+                      <AlertDescription>Ini hanyalah kemungkinan penyebab. Menjalankan tes yang disarankan sangat penting untuk memastikan masalah sebenarnya.</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {analysis.clarificationQuestions && analysis.clarificationQuestions.length > 0 && (
+                     <Alert className="mb-4">
+                      <HelpCircle className="h-4 w-4" />
+                      <AlertTitle>Pertanyaan Klarifikasi</AlertTitle>
+                      <AlertDescription>
+                         <ul className="list-disc list-inside space-y-2 mt-2">
+                            {analysis.clarificationQuestions.map((q, i) => <li key={i}>{q}</li>)}
+                         </ul>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  <Accordion type="multiple" defaultValue={['causes']} className="w-full">
+                    {analysis.possibleCauses.length > 0 && (
+                    <AccordionItem value="causes">
+                      <AccordionTrigger className="text-lg font-semibold">Kemungkinan Penyebab</AccordionTrigger>
+                      <AccordionContent className="space-y-4 pt-4">
+                        {analysis.possibleCauses.map((causeInfo, i) => (
+                          <div key={i} className="p-4 border rounded-lg bg-card shadow-sm">
+                            <p className="font-semibold text-base">{causeInfo.cause}</p>
+                            <div className="mt-2 text-sm text-muted-foreground">
+                              <MarkdownContent content={causeInfo.details} />
+                            </div>
+                            <Button 
+                              variant="outline"
+                              size="sm"
+                              className="mt-4"
+                              onClick={() => handleSuggestTests(causeInfo.cause)}
+                              disabled={testSuggestions[causeInfo.cause]?.loading || isSuggesting}
+                            >
+                               {(testSuggestions[causeInfo.cause]?.loading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                              Sarankan Tes & Prosedur
+                            </Button>
+
+                            {testSuggestions[causeInfo.cause]?.loading && <Skeleton className="h-20 w-full mt-2" />}
+                            
+                            {testSuggestions[causeInfo.cause]?.error && (
+                              <Alert variant="destructive" className="mt-2">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle>Kesalahan</AlertTitle>
+                                <AlertDescription>{testSuggestions[causeInfo.cause]?.error}</AlertDescription>
+                              </Alert>
+                            )}
+                            
+                            {testSuggestions[causeInfo.cause]?.data && (
+                              <div className="mt-4 pl-4 border-l-4 border-primary/50 space-y-2">
+                                <h4 className="font-semibold">Tes yang Disarankan:</h4>
+                                <ul className="list-none space-y-2">
+                                  {testSuggestions[causeInfo.cause]!.data!.split('\n').filter(line => line.trim()).map((test, testIndex) => (
+                                    <li key={testIndex}>
+                                      <button onClick={() => setDialogTest(test)} className="w-full text-left p-2 rounded-md hover:bg-accent/10 transition-colors flex items-center justify-between group">
+                                        <span className="text-sm">{test.replace(/^\d+\.\s*/, '')}</span>
+                                        <ChevronsRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                    )}
+                  </Accordion>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Side Column */}
+          <div className="lg:col-span-1 space-y-8">
+             <Card className="shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><BookOpen className="w-6 h-6 text-primary"/> Pusat Pengetahuan</CardTitle>
-                <CardDescription>Punya pertanyaan tentang teknologi atau istilah otomotif? Tanyakan di sini.</CardDescription>
+                <CardTitle className="flex items-center gap-2"><FileSearch className="w-6 h-6 text-primary"/> Pencari Manual</CardTitle>
+                <CardDescription>Cari manual bengkel, TSB, atau panduan perbaikan.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col h-full justify-between gap-2">
                   <Input
-                    placeholder="contoh: 'Apa itu ADAS?' atau 'Cara kerja VVT-i'"
+                    placeholder="contoh: 'manual perbaikan Toyota Avanza'"
+                    value={manualQuery}
+                    onChange={(e) => setManualQuery(e.target.value)}
+                    disabled={isFinding}
+                    className="text-base"
+                  />
+                  <Button onClick={handleFindManual} disabled={isFinding || !manualQuery} variant="secondary" size="lg">
+                    {isFinding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Cari Manual
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><BookOpen className="w-6 h-6 text-primary"/> Pusat Pengetahuan</CardTitle>
+                <CardDescription>Punya pertanyaan tentang teknologi atau istilah otomotif?</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col h-full justify-between gap-2">
+                  <Input
+                    placeholder="contoh: 'Apa itu ADAS?'"
                     value={knowledgeQuery}
                     onChange={(e) => setKnowledgeQuery(e.target.value)}
                     disabled={isExplaining}
@@ -462,105 +657,6 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
-          
-          {(isAnalyzing || isExplaining) && renderSkeleton()}
-
-          {knowledgeResult && !isExplaining && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="w-6 h-6 text-primary" /> Penjelasan untuk: "{knowledgeQuery}"
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-                <MarkdownContent content={knowledgeResult.explanation} />
-              </CardContent>
-            </Card>
-          )}
-
-          {analysis && !isAnalyzing && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><FileText className="w-6 h-6 text-primary" /> Hasil Diagnosis</CardTitle>
-                <CardDescription>Berdasarkan deskripsi Anda, berikut adalah kemungkinan penyebab dan pertanyaan klarifikasi.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isBeginnerMode && (
-                  <Alert className="mb-4 border-accent bg-accent/10 text-accent-foreground">
-                    <Lightbulb className="h-4 w-4 text-accent" />
-                    <AlertTitle>Tips untuk Pemula</AlertTitle>
-                    <AlertDescription>Ini hanyalah kemungkinan penyebab. Menjalankan tes yang disarankan sangat penting untuk memastikan masalah sebenarnya.</AlertDescription>
-                  </Alert>
-                )}
-
-                {analysis.clarificationQuestions && analysis.clarificationQuestions.length > 0 && (
-                   <Alert className="mb-4">
-                    <HelpCircle className="h-4 w-4" />
-                    <AlertTitle>Pertanyaan Klarifikasi</AlertTitle>
-                    <AlertDescription>
-                       <ul className="list-disc list-inside space-y-2 mt-2">
-                          {analysis.clarificationQuestions.map((q, i) => <li key={i}>{q}</li>)}
-                       </ul>
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <Accordion type="multiple" defaultValue={['causes']} className="w-full">
-                  {analysis.possibleCauses.length > 0 && (
-                  <AccordionItem value="causes">
-                    <AccordionTrigger className="text-lg font-semibold">Kemungkinan Penyebab</AccordionTrigger>
-                    <AccordionContent className="space-y-4 pt-4">
-                      {analysis.possibleCauses.map((causeInfo, i) => (
-                        <div key={i} className="p-4 border rounded-lg bg-card shadow-sm">
-                          <p className="font-semibold text-base">{causeInfo.cause}</p>
-                          <div className="mt-2 text-sm text-muted-foreground">
-                            <MarkdownContent content={causeInfo.details} />
-                          </div>
-                          <Button 
-                            variant="outline"
-                            size="sm"
-                            className="mt-4"
-                            onClick={() => handleSuggestTests(causeInfo.cause)}
-                            disabled={testSuggestions[causeInfo.cause]?.loading || isSuggesting}
-                          >
-                             {(testSuggestions[causeInfo.cause]?.loading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Sarankan Tes & Prosedur
-                          </Button>
-
-                          {testSuggestions[causeInfo.cause]?.loading && <Skeleton className="h-20 w-full mt-2" />}
-                          
-                          {testSuggestions[causeInfo.cause]?.error && (
-                            <Alert variant="destructive" className="mt-2">
-                              <AlertCircle className="h-4 w-4" />
-                              <AlertTitle>Kesalahan</AlertTitle>
-                              <AlertDescription>{testSuggestions[causeInfo.cause]?.error}</AlertDescription>
-                            </Alert>
-                          )}
-                          
-                          {testSuggestions[causeInfo.cause]?.data && (
-                            <div className="mt-4 pl-4 border-l-4 border-primary/50 space-y-2">
-                              <h4 className="font-semibold">Tes yang Disarankan:</h4>
-                              <ul className="list-none space-y-2">
-                                {testSuggestions[causeInfo.cause]!.data!.split('\n').filter(line => line.trim()).map((test, testIndex) => (
-                                  <li key={testIndex}>
-                                    <button onClick={() => setDialogTest(test)} className="w-full text-left p-2 rounded-md hover:bg-accent/10 transition-colors flex items-center justify-between group">
-                                      <span className="text-sm">{test.replace(/^\d+\.\s*/, '')}</span>
-                                      <ChevronsRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    </button>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </AccordionContent>
-                  </AccordionItem>
-                  )}
-                </Accordion>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </main>
       <RepairGuideDialog open={!!dialogTest} onOpenChange={(open) => !open && setDialogTest(null)} testName={dialogTest} />
