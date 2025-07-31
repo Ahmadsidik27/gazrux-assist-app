@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal, HelpCircle } from 'lucide-react';
+import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal, HelpCircle, FileType } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
@@ -74,7 +74,42 @@ const findRepairGuide = (testName: string): RepairGuide | null => {
   return foundKey ? repairGuides[foundKey] : null;
 };
 
+// Helper function to detect if content contains Google Drive links and format them
+const renderDriveLinks = (content: string) => {
+    // Basic check for Google Drive link pattern from the tool
+    if (content.includes("https://drive.google.com/file/d/")) {
+        const lines = content.split('\n');
+        return (
+            <ul className="list-none space-y-2">
+                {lines.map((line, index) => {
+                    const match = line.match(/\[(.*?)\]\((.*?)\)/);
+                    if (match) {
+                        const title = match[1];
+                        const url = match[2];
+                        return (
+                             <li key={index} className="flex items-start gap-2">
+                                <FileType className="w-4 h-4 mt-1 text-primary flex-shrink-0" />
+                                <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                                    {title}
+                                </a>
+                            </li>
+                        )
+                    }
+                    return null; // Ignore lines that are not drive links
+                }).filter(Boolean)}
+            </ul>
+        )
+    }
+    return null;
+}
+
 function MarkdownContent({ content }: { content: string }) {
+  // Try to render as a drive link list first
+  const driveLinks = renderDriveLinks(content);
+  if (driveLinks) {
+      return driveLinks;
+  }
+
   // A more robust regex to handle various Markdown elements gracefully.
   const parts = content.split(/(\n\n|`{3}[\s\S]*?`{3}|!\[.*?\]\(.*?\)|\|-+\|)/g).filter(Boolean);
 
