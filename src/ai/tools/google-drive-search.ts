@@ -32,18 +32,18 @@ export const searchGoogleDrive = ai.defineTool(
   async (input) => {
     try {
       // Inisialisasi Google Drive API Client
-      // PENTING: Untuk produksi, gunakan otentikasi OAuth2 atau akun layanan.
-      // Menggunakan hanya kunci API akan memberikan akses baca-saja ke file yang dibagikan secara publik.
+      // PENTING: Otentikasi saat ini menggunakan Kunci API.
+      // Ini berarti HANYA file yang dibagikan secara PUBLIK ("Siapa saja yang memiliki link") yang dapat ditemukan.
+      // Untuk mencari file pribadi, Anda perlu mengimplementasikan otentikasi OAuth2 atau Akun Layanan.
       const drive = google.drive({
         version: 'v3',
-        auth: process.env.GOOGLE_API_KEY, // Kunci API untuk akses dasar
+        auth: process.env.GOOGLE_API_KEY, 
       });
 
       const response = await drive.files.list({
         q: `fullText contains '${input.query}' or name contains '${input.query}'`,
         fields: 'files(id, name, mimeType, webViewLink, fullFileExtension, description)',
-        // fields: 'files(id, name, mimeType, webViewLink)',
-        // Untuk pencarian yang lebih baik, korpus 'USER' atau 'DOMAIN' dapat digunakan dengan OAuth2.
+        // Untuk pencarian yang lebih baik pada file pribadi, korpus 'USER' atau 'DOMAIN' dapat digunakan dengan OAuth2.
         // corpora: 'user', 
         pageSize: 5, // Batasi jumlah hasil
       });
