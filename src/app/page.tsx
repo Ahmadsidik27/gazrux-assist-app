@@ -31,38 +31,38 @@ type RepairGuide = {
 };
 
 const repairGuides: Record<string, RepairGuide> = {
-  'check fuel pressure': {
-    title: 'Procedure: Check Fuel Pressure',
-    image: { src: 'https://placehold.co/400x300', hint: 'fuel system diagram' },
+  'periksa tekanan bahan bakar': {
+    title: 'Prosedur: Periksa Tekanan Bahan Bakar',
+    image: { src: 'https://placehold.co/400x300', hint: 'diagram sistem bahan bakar' },
     steps: [
-      "Connect fuel pressure gauge to the fuel rail service port.",
-      "Turn ignition to 'ON' position without starting the engine.",
-      "Record the pressure reading.",
-      "Start the engine and record the pressure at idle."
+      "Sambungkan pengukur tekanan bahan bakar ke port servis rel bahan bakar.",
+      "Putar kunci kontak ke posisi 'ON' tanpa menyalakan mesin.",
+      "Catat pembacaan tekanan.",
+      "Nyalakan mesin dan catat tekanan saat idle."
     ],
-    specs: "Expected pressure: 40-60 PSI (depending on model)."
+    specs: "Tekanan yang diharapkan: 40-60 PSI (tergantung model)."
   },
-  'inspect spark plugs': {
-    title: 'Procedure: Inspect Spark Plugs',
-    image: { src: 'https://placehold.co/400x300', hint: 'engine spark plug' },
+  'periksa busi': {
+    title: 'Prosedur: Periksa Busi',
+    image: { src: 'https://placehold.co/400x300', hint: 'busi mesin' },
     steps: [
-      "Disconnect the negative battery terminal.",
-      "Remove ignition coils or spark plug wires.",
-      "Using a spark plug socket, carefully remove each spark plug.",
-      "Inspect the electrode for wear, deposits, or damage."
+      "Lepaskan terminal negatif baterai.",
+      "Lepaskan koil pengapian atau kabel busi.",
+      "Gunakan kunci busi, lepaskan setiap busi dengan hati-hati.",
+      "Periksa elektroda dari keausan, endapan, atau kerusakan."
     ],
-    specs: "Check manual for correct spark plug gap. Replace if necessary."
+    specs: "Periksa manual untuk celah busi yang benar. Ganti jika perlu."
   },
-  'scan obd-ii for codes': {
-    title: 'Procedure: Scan OBD-II for Codes',
-    image: { src: 'https://placehold.co/400x300', hint: 'obd2 scanner port' },
+  'pindai obd-ii untuk kode': {
+    title: 'Prosedur: Pindai OBD-II untuk Kode',
+    image: { src: 'https://placehold.co/400x300', hint: 'port pemindai obd2' },
     steps: [
-      "Locate the OBD-II port, usually under the dashboard on the driver's side.",
-      "Connect the OBD-II scanner.",
-      "Turn the ignition to the 'ON' position.",
-      "Follow the scanner's instructions to read Diagnostic Trouble Codes (DTCs)."
+      "Temukan port OBD-II, biasanya di bawah dasbor di sisi pengemudi.",
+      "Sambungkan pemindai OBD-II.",
+      "Putar kunci kontak ke posisi 'ON'.",
+      "Ikuti instruksi pemindai untuk membaca Kode Masalah Diagnostik (DTC)."
     ],
-    specs: "Record any active or pending codes for further diagnosis."
+    specs: "Catat semua kode aktif atau yang tertunda untuk diagnosis lebih lanjut."
   },
 };
 
@@ -82,9 +82,9 @@ function RepairGuideDialog({ open, onOpenChange, testName }: { open: boolean; on
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Repair Guide Not Available</DialogTitle>
+            <DialogTitle>Panduan Perbaikan Tidak Tersedia</DialogTitle>
             <DialogDescription>
-              A detailed, step-by-step guide for &quot;{testName}&quot; is not available in our simulated manual.
+              Panduan langkah demi langkah yang terperinci untuk &quot;{testName}&quot; tidak tersedia di manual simulasi kami.
             </DialogDescription>
           </DialogHeader>
         </DialogContent>
@@ -97,7 +97,7 @@ function RepairGuideDialog({ open, onOpenChange, testName }: { open: boolean; on
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><FileCog className="w-5 h-5" /> {guide.title}</DialogTitle>
-          <DialogDescription>Follow these steps carefully. Refer to the official workshop manual for detailed specifications.</DialogDescription>
+          <DialogDescription>Ikuti langkah-langkah ini dengan cermat. Lihat manual bengkel resmi untuk spesifikasi terperinci.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="flex justify-center">
@@ -111,13 +111,13 @@ function RepairGuideDialog({ open, onOpenChange, testName }: { open: boolean; on
             />
           </div>
           <div>
-            <h4 className="font-semibold mb-2">Steps:</h4>
+            <h4 className="font-semibold mb-2">Langkah-langkah:</h4>
             <ol className="list-decimal list-inside space-y-2 text-sm">
               {guide.steps.map((step, i) => <li key={i}>{step}</li>)}
             </ol>
           </div>
           <div>
-            <h4 className="font-semibold mb-2">Specifications:</h4>
+            <h4 className="font-semibold mb-2">Spesifikasi:</h4>
             <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">{guide.specs}</p>
           </div>
         </div>
@@ -141,8 +141,8 @@ export default function Home() {
     if (issueDescription.trim().length < 10) {
       toast({
         variant: 'destructive',
-        title: 'Input Error',
-        description: 'Please provide a more detailed description (at least 10 characters).',
+        title: 'Kesalahan Input',
+        description: 'Harap berikan deskripsi yang lebih detail (minimal 10 karakter).',
       });
       return;
     }
@@ -156,8 +156,8 @@ export default function Home() {
       } catch (e) {
         toast({
           variant: 'destructive',
-          title: 'Analysis Failed',
-          description: e instanceof Error ? e.message : 'An unknown error occurred.',
+          title: 'Analisis Gagal',
+          description: e instanceof Error ? e.message : 'Terjadi kesalahan yang tidak diketahui.',
         });
       }
     });
@@ -174,7 +174,7 @@ export default function Home() {
         setTestSuggestions(prev => ({ ...prev, [cause]: { loading: false, data: null, error: errorMsg } }));
         toast({
           variant: 'destructive',
-          title: 'Could not get suggestions',
+          title: 'Tidak dapat memperoleh saran',
           description: errorMsg,
         });
       }
@@ -190,16 +190,16 @@ export default function Home() {
               <Car className="h-8 w-8 text-primary" />
               <div>
                 <h1 className="text-xl font-bold tracking-tight">AutoAssist AI</h1>
-                <p className="text-sm text-muted-foreground">Your AI partner in the garage</p>
+                <p className="text-sm text-muted-foreground">Partner AI Anda di garasi</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
                <div className="relative w-48 hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search manual (simulated)" className="pl-9" />
+                <Input placeholder="Cari manual (simulasi)" className="pl-9" />
               </div>
               <div className="flex items-center space-x-2">
-                <Label htmlFor="beginner-mode" className="text-sm font-medium">Beginner Mode</Label>
+                <Label htmlFor="beginner-mode" className="text-sm font-medium">Mode Pemula</Label>
                 <Switch id="beginner-mode" checked={isBeginnerMode} onCheckedChange={setIsBeginnerMode} />
               </div>
             </div>
@@ -211,13 +211,13 @@ export default function Home() {
         <div className="max-w-3xl mx-auto space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Wrench className="w-6 h-6 text-primary"/> Describe the Vehicle's Issue</CardTitle>
-              <CardDescription>Enter all symptoms, strange sounds, or error codes you have. The more detail, the better the diagnosis.</CardDescription>
+              <CardTitle className="flex items-center gap-2"><Wrench className="w-6 h-6 text-primary"/> Jelaskan Masalah Kendaraan</CardTitle>
+              <CardDescription>Masukkan semua gejala, suara aneh, atau kode kesalahan yang Anda miliki. Semakin detail, semakin baik diagnosisnya.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid w-full gap-2">
                 <Textarea
-                  placeholder="e.g., 'The car is a 2015 Honda Civic. It makes a clicking sound when trying to start, but the engine won't turn over. The dashboard lights are on.'"
+                  placeholder="contoh: 'Mobilnya adalah Honda Civic 2015. Terdengar bunyi klik saat mencoba menyalakan, tetapi mesin tidak mau berputar. Lampu dasbor menyala.'"
                   rows={5}
                   value={issueDescription}
                   onChange={(e) => setIssueDescription(e.target.value)}
@@ -225,7 +225,7 @@ export default function Home() {
                 />
                 <Button onClick={handleDiagnose} disabled={isAnalyzing || !issueDescription}>
                   {isAnalyzing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isAnalyzing ? 'Analyzing...' : 'Diagnose Issue'}
+                  {isAnalyzing ? 'Menganalisis...' : 'Diagnosis Masalah'}
                 </Button>
               </div>
             </CardContent>
@@ -234,7 +234,7 @@ export default function Home() {
           {isAnalyzing && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Lightbulb className="w-6 h-6 text-primary" />AI Diagnosis in Progress</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Lightbulb className="w-6 h-6 text-primary" />Diagnosis AI Sedang Berlangsung</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Skeleton className="h-8 w-3/4" />
@@ -248,21 +248,21 @@ export default function Home() {
           {analysis && !isAnalyzing && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><FileText className="w-6 h-6 text-primary" /> Diagnosis Results</CardTitle>
-                <CardDescription>Based on your description, here are the potential causes and some clarifying questions.</CardDescription>
+                <CardTitle className="flex items-center gap-2"><FileText className="w-6 h-6 text-primary" /> Hasil Diagnosis</CardTitle>
+                <CardDescription>Berdasarkan deskripsi Anda, berikut adalah kemungkinan penyebab dan beberapa pertanyaan klarifikasi.</CardDescription>
               </CardHeader>
               <CardContent>
                 {isBeginnerMode && (
                   <Alert className="mb-4 bg-primary/10 border-primary/20">
                     <Lightbulb className="h-4 w-4" />
-                    <AlertTitle>Beginner's Tip</AlertTitle>
-                    <AlertDescription>These are just potential causes. Running the suggested tests is crucial to confirm the actual problem.</AlertDescription>
+                    <AlertTitle>Tips untuk Pemula</AlertTitle>
+                    <AlertDescription>Ini hanyalah kemungkinan penyebab. Menjalankan tes yang disarankan sangat penting untuk memastikan masalah sebenarnya.</AlertDescription>
                   </Alert>
                 )}
                 <Accordion type="multiple" defaultValue={['causes']} className="w-full">
                   {analysis.possibleCauses.length > 0 && (
                   <AccordionItem value="causes">
-                    <AccordionTrigger className="text-base font-semibold">Potential Causes</AccordionTrigger>
+                    <AccordionTrigger className="text-base font-semibold">Kemungkinan Penyebab</AccordionTrigger>
                     <AccordionContent className="space-y-4 pt-2">
                       {analysis.possibleCauses.map((cause, i) => (
                         <div key={i} className="p-3 border rounded-lg bg-background">
@@ -275,7 +275,7 @@ export default function Home() {
                             disabled={testSuggestions[cause]?.loading || isSuggesting}
                           >
                              {(testSuggestions[cause]?.loading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Suggest Tests & Procedures
+                            Sarankan Tes & Prosedur
                           </Button>
 
                           {testSuggestions[cause]?.loading && <Skeleton className="h-20 w-full mt-2" />}
@@ -283,14 +283,14 @@ export default function Home() {
                           {testSuggestions[cause]?.error && (
                             <Alert variant="destructive" className="mt-2">
                               <AlertCircle className="h-4 w-4" />
-                              <AlertTitle>Error</AlertTitle>
+                              <AlertTitle>Kesalahan</AlertTitle>
                               <AlertDescription>{testSuggestions[cause]?.error}</AlertDescription>
                             </Alert>
                           )}
                           
                           {testSuggestions[cause]?.data && (
                             <div className="mt-4 pl-4 border-l-2 border-primary/50 space-y-2">
-                              <h4 className="font-semibold text-sm">Suggested Tests:</h4>
+                              <h4 className="font-semibold text-sm">Tes yang Disarankan:</h4>
                               <ul className="list-none space-y-2">
                                 {testSuggestions[cause]!.data!.split('\n').filter(line => line.trim()).map((test, testIndex) => (
                                   <li key={testIndex}>
@@ -310,7 +310,7 @@ export default function Home() {
                   )}
                   {analysis.clarificationQuestions && analysis.clarificationQuestions.length > 0 && (
                     <AccordionItem value="questions">
-                      <AccordionTrigger className="text-base font-semibold">Clarification Questions</AccordionTrigger>
+                      <AccordionTrigger className="text-base font-semibold">Pertanyaan Klarifikasi</AccordionTrigger>
                       <AccordionContent className="pt-2">
                          <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                             {analysis.clarificationQuestions.map((q, i) => <li key={i}>{q}</li>)}

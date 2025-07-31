@@ -1,23 +1,23 @@
 'use server';
 /**
- * @fileOverview This file defines a Genkit flow for suggesting specific tests a mechanic can perform to diagnose a vehicle issue.
+ * @fileOverview File ini mendefinisikan alur Genkit untuk menyarankan tes spesifik yang dapat dilakukan mekanik untuk mendiagnosis masalah kendaraan.
  *
- * - suggestTests - A function that suggests tests based on the described issue and potential causes.
- * - SuggestTestsInput - The input type for the suggestTests function.
- * - SuggestTestsOutput - The return type for the suggestTests function.
+ * - suggestTests - Fungsi yang menyarankan tes berdasarkan masalah yang dijelaskan dan penyebab potensial.
+ * - SuggestTestsInput - Tipe input untuk fungsi suggestTests.
+ * - SuggestTestsOutput - Tipe kembalian untuk fungsi suggestTests.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const SuggestTestsInputSchema = z.object({
-  issueDescription: z.string().describe('The mechanic\'s description of the vehicle issue, including symptoms, sounds, and error codes.'),
-  potentialCauses: z.string().describe('A list of potential causes for the issue, identified in a previous step.'),
+  issueDescription: z.string().describe('Deskripsi mekanik tentang masalah kendaraan, termasuk gejala, suara, dan kode kesalahan.'),
+  potentialCauses: z.string().describe('Daftar penyebab potensial masalah, yang diidentifikasi pada langkah sebelumnya.'),
 });
 export type SuggestTestsInput = z.infer<typeof SuggestTestsInputSchema>;
 
 const SuggestTestsOutputSchema = z.object({
-  suggestedTests: z.string().describe('A list of suggested tests the mechanic can perform, such as sensor checks or OBD-II scans.'),
+  suggestedTests: z.string().describe('Daftar tes yang disarankan yang dapat dilakukan mekanik, seperti pemeriksaan sensor atau pemindaian OBD-II.'),
 });
 export type SuggestTestsOutput = z.infer<typeof SuggestTestsOutputSchema>;
 
@@ -29,16 +29,16 @@ const prompt = ai.definePrompt({
   name: 'suggestTestsPrompt',
   input: {schema: SuggestTestsInputSchema},
   output: {schema: SuggestTestsOutputSchema},
-  prompt: `You are an AI assistant helping a mechanic diagnose a vehicle issue.
+  prompt: `Anda adalah asisten AI yang membantu mekanik mendiagnosis masalah kendaraan.
 
-The mechanic has described the following issue: {{{issueDescription}}}
+Mekanik telah menjelaskan masalah berikut: {{{issueDescription}}}
 
-Based on this description, the following potential causes have been identified:
+Berdasarkan deskripsi ini, penyebab potensial berikut telah diidentifikasi:
 {{{potentialCauses}}}
 
-Suggest specific tests the mechanic can perform to narrow down the possible causes. Be specific and suggest concrete measurements or checks that can be done. For example, "Check the resistance of sensor X" or "Perform an OBD-II scan and check for error codes related to the fuel system". Focus on tests that can help differentiate between the potential causes listed above. Provide a numbered list of the suggested tests.
+Sarankan tes spesifik yang dapat dilakukan mekanik untuk mempersempit kemungkinan penyebab. Jadilah spesifik dan sarankan pengukuran atau pemeriksaan konkret yang dapat dilakukan. Misalnya, "Periksa resistansi sensor X" atau "Lakukan pemindaian OBD-II dan periksa kode kesalahan yang terkait dengan sistem bahan bakar". Fokus pada tes yang dapat membantu membedakan antara penyebab potensial yang tercantum di atas. Berikan daftar tes yang disarankan dalam bentuk bernomor.
 
-Output only the list of suggested tests. Do not include any introductory or concluding remarks.
+Hanya keluarkan daftar tes yang disarankan. Jangan sertakan pernyataan pembuka atau penutup apa pun.
 `,
 });
 

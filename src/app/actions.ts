@@ -5,20 +5,20 @@ import { suggestTests as suggestTestsFlow } from '@/ai/flows/suggest-tests';
 
 export async function analyzeIssue(issueDescription: string) {
   if (!issueDescription || issueDescription.trim().length < 10) {
-    throw new Error('Please provide a more detailed description of the issue.');
+    throw new Error('Harap berikan deskripsi masalah yang lebih detail.');
   }
   try {
     const result = await analyzeIssueFlow({ issueDescription });
     return result;
   } catch (error) {
     console.error('Error in analyzeIssue action:', error);
-    throw new Error('Failed to communicate with the AI service. Please try again later.');
+    throw new Error('Gagal berkomunikasi dengan layanan AI. Silakan coba lagi nanti.');
   }
 }
 
 export async function suggestTests(issueDescription: string, potentialCause: string) {
     if (!issueDescription || !potentialCause) {
-        throw new Error('Missing required information to suggest tests.');
+        throw new Error('Informasi yang diperlukan untuk menyarankan tes tidak lengkap.');
     }
     try {
         const result = await suggestTestsFlow({
@@ -28,6 +28,6 @@ export async function suggestTests(issueDescription: string, potentialCause: str
         return result;
     } catch (error) {
         console.error('Error in suggestTests action:', error);
-        throw new Error('Failed to communicate with the AI service. Please try again later.');
+        throw new Error('Gagal berkomunikasi dengan layanan AI. Silakan coba lagi nanti.');
     }
 }

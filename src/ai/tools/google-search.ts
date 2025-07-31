@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview A tool for performing Google searches using SerpApi.
+ * @fileOverview Alat untuk melakukan pencarian Google menggunakan SerpApi.
  * 
- * - googleSearch - A Genkit tool that takes a search query and returns search results.
+ * - googleSearch - Alat Genkit yang menerima kueri pencarian dan mengembalikan hasil pencarian.
  */
 
 import { ai } from '@/ai/genkit';
@@ -12,9 +12,9 @@ import { z } from 'zod';
 export const googleSearch = ai.defineTool(
   {
     name: 'googleSearch',
-    description: 'Performs a Google search to get information from the web. Use this to find information about vehicle issues, error codes, and repair procedures.',
+    description: 'Melakukan pencarian Google untuk mendapatkan informasi dari web. Gunakan ini untuk menemukan informasi tentang masalah kendaraan, kode kesalahan, dan prosedur perbaikan.',
     inputSchema: z.object({
-      query: z.string().describe('The search query.'),
+      query: z.string().describe('Kueri pencarian.'),
     }),
     outputSchema: z.object({
       results: z.array(

@@ -1,11 +1,11 @@
 'use server';
 
 /**
- * @fileOverview Analyzes a vehicle issue described by a mechanic and suggests potential causes.
+ * @fileOverview Menganalisis masalah kendaraan yang dijelaskan oleh seorang mekanik dan menyarankan kemungkinan penyebabnya.
  *
- * - analyzeIssue - A function that takes a description of a vehicle issue and returns a list of potential causes.
- * - AnalyzeIssueInput - The input type for the analyzeIssue function.
- * - AnalyzeIssueOutput - The return type for the analyzeIssue function.
+ * - analyzeIssue - Fungsi yang menerima deskripsi masalah kendaraan dan mengembalikan daftar kemungkinan penyebab.
+ * - AnalyzeIssueInput - Tipe input untuk fungsi analyzeIssue.
+ * - AnalyzeIssueOutput - Tipe kembalian untuk fungsi analyzeIssue.
  */
 
 import {ai} from '@/ai/genkit';
@@ -13,17 +13,17 @@ import {z} from 'genkit';
 import {googleSearch} from '../tools/google-search';
 
 const AnalyzeIssueInputSchema = z.object({
-  issueDescription: z.string().describe('The description of the vehicle issue provided by the mechanic.'),
+  issueDescription: z.string().describe('Deskripsi masalah kendaraan yang diberikan oleh mekanik.'),
 });
 export type AnalyzeIssueInput = z.infer<typeof AnalyzeIssueInputSchema>;
 
 const AnalyzeIssueOutputSchema = z.object({
   possibleCauses: z.array(
-    z.string().describe('A potential cause of the described vehicle issue.')
-  ).describe('A list of potential causes for the described vehicle issue, ordered by probability.'),
+    z.string().describe('Kemungkinan penyebab dari masalah kendaraan yang dijelaskan.')
+  ).describe('Daftar kemungkinan penyebab masalah kendaraan yang dijelaskan, diurutkan berdasarkan probabilitas.'),
   clarificationQuestions: z.array(
-    z.string().describe('A question to ask the mechanic to clarify the issue.')
-  ).optional().describe('A list of questions to ask the mechanic to clarify the issue, if the provided information is insufficient.'),
+    z.string().describe('Pertanyaan untuk diajukan kepada mekanik untuk mengklarifikasi masalah.')
+  ).optional().describe('Daftar pertanyaan untuk diajukan kepada mekanik untuk mengklarifikasi masalah, jika informasi yang diberikan tidak cukup.'),
 });
 export type AnalyzeIssueOutput = z.infer<typeof AnalyzeIssueOutputSchema>;
 
@@ -36,13 +36,13 @@ const analyzeIssuePrompt = ai.definePrompt({
   input: {schema: AnalyzeIssueInputSchema},
   output: {schema: AnalyzeIssueOutputSchema},
   tools: [googleSearch],
-  prompt: `You are an AI assistant helping mechanics diagnose vehicle issues.
+  prompt: `Anda adalah asisten AI yang membantu mekanik mendiagnosis masalah kendaraan.
 
-The mechanic has described the following issue: {{{issueDescription}}}
+Mekanik telah menjelaskan masalah berikut: {{{issueDescription}}}
 
-Based on this description, provide a list of possible causes for the issue, ordered by probability (most likely first). Use the googleSearch tool to look up information about the vehicle and issue to provide a more accurate diagnosis. If the description is vague or unclear, provide a list of questions to ask the mechanic in order to clarify the issue. The questions should be specific and relevant to narrowing down the possible causes.
+Berdasarkan deskripsi ini, berikan daftar kemungkinan penyebab masalah, diurutkan berdasarkan probabilitas (paling mungkin terlebih dahulu). Gunakan alat googleSearch untuk mencari informasi tentang kendaraan dan masalah untuk memberikan diagnosis yang lebih akurat. Jika deskripsinya tidak jelas atau tidak jelas, berikan daftar pertanyaan untuk diajukan kepada mekanik untuk mengklarifikasi masalah. Pertanyaan harus spesifik dan relevan untuk mempersempit kemungkinan penyebab.
 
-Output the possible causes and clarification questions (if any) in a JSON format.
+Keluarkan kemungkinan penyebab dan pertanyaan klarifikasi (jika ada) dalam format JSON.
 `,
 });
 
