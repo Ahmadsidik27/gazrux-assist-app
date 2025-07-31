@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, Fragment } from 'react';
 import Image from 'next/image';
 import type { AnalyzeIssueOutput } from '@/ai/flows/analyze-issue';
 import { analyzeIssue, suggestTests } from './actions';
@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
 import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, Settings, FileCog } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
 
@@ -71,6 +72,63 @@ const findRepairGuide = (testName: string): RepairGuide | null => {
   const foundKey = Object.keys(repairGuides).find(key => lowerTestName.includes(key));
   return foundKey ? repairGuides[foundKey] : null;
 };
+
+function MarkdownContent({ content }: { content: string }) {
+  const parts = content.split(/(!\[.*?\]\(.*?\)|\|.*?\|)/g).filter(Boolean);
+
+  return (
+    <div className="prose prose-sm dark:prose-invert max-w-none">
+      {parts.map((part, index) => {
+        const imageMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
+        if (imageMatch) {
+          const alt = imageMatch[1];
+          const src = imageMatch[2];
+          return (
+            <div key={index} className="my-4 flex justify-center">
+              <Image
+                src={src}
+                alt={alt}
+                width={400}
+                height={300}
+                className="rounded-lg border shadow-sm"
+                data-ai-hint={alt.toLowerCase()}
+              />
+            </div>
+          );
+        }
+        
+        const tableMatch = part.match(/\|(.*?)\|/);
+        if (tableMatch) {
+          const rows = content.split('\n').map(row => row.split('|').map(cell => cell.trim()).filter(cell => cell));
+          if (rows.length < 2) return <p key={index}>{part}</p>;
+          const header = rows[0];
+          const body = rows.slice(2); 
+
+          return (
+             <div key={index} className="my-4 overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {header.map((head, i) => <TableHead key={i}>{head}</TableHead>)}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {body.map((row, i) => (
+                    <TableRow key={i}>
+                      {row.map((cell, j) => <TableCell key={j}>{cell}</TableCell>)}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          );
+        }
+
+        return <p key={index}>{part}</p>
+      })}
+    </div>
+  );
+}
 
 function RepairGuideDialog({ open, onOpenChange, testName }: { open: boolean; onOpenChange: (open: boolean) => void; testName: string | null }) {
   if (!testName) return null;
@@ -264,35 +322,38 @@ export default function Home() {
                   <AccordionItem value="causes">
                     <AccordionTrigger className="text-base font-semibold">Kemungkinan Penyebab</AccordionTrigger>
                     <AccordionContent className="space-y-4 pt-2">
-                      {analysis.possibleCauses.map((cause, i) => (
+                      {analysis.possibleCauses.map((causeInfo, i) => (
                         <div key={i} className="p-3 border rounded-lg bg-background">
-                          <p className="font-medium">{cause}</p>
+                          <p className="font-medium">{causeInfo.cause}</p>
+                          <div className="mt-2 text-sm text-muted-foreground">
+                            <MarkdownContent content={causeInfo.details} />
+                          </div>
                           <Button 
                             variant="secondary"
                             size="sm"
                             className="mt-2"
-                            onClick={() => handleSuggestTests(cause)}
-                            disabled={testSuggestions[cause]?.loading || isSuggesting}
+                            onClick={() => handleSuggestTests(causeInfo.cause)}
+                            disabled={testSuggestions[causeInfo.cause]?.loading || isSuggesting}
                           >
-                             {(testSuggestions[cause]?.loading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                             {(testSuggestions[causeInfo.cause]?.loading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Sarankan Tes & Prosedur
                           </Button>
 
-                          {testSuggestions[cause]?.loading && <Skeleton className="h-20 w-full mt-2" />}
+                          {testSuggestions[causeInfo.cause]?.loading && <Skeleton className="h-20 w-full mt-2" />}
                           
-                          {testSuggestions[cause]?.error && (
+                          {testSuggestions[causeInfo.cause]?.error && (
                             <Alert variant="destructive" className="mt-2">
                               <AlertCircle className="h-4 w-4" />
                               <AlertTitle>Kesalahan</AlertTitle>
-                              <AlertDescription>{testSuggestions[cause]?.error}</AlertDescription>
+                              <AlertDescription>{testSuggestions[causeInfo.cause]?.error}</AlertDescription>
                             </Alert>
                           )}
                           
-                          {testSuggestions[cause]?.data && (
+                          {testSuggestions[causeInfo.cause]?.data && (
                             <div className="mt-4 pl-4 border-l-2 border-primary/50 space-y-2">
                               <h4 className="font-semibold text-sm">Tes yang Disarankan:</h4>
                               <ul className="list-none space-y-2">
-                                {testSuggestions[cause]!.data!.split('\n').filter(line => line.trim()).map((test, testIndex) => (
+                                {testSuggestions[causeInfo.cause]!.data!.split('\n').filter(line => line.trim()).map((test, testIndex) => (
                                   <li key={testIndex}>
                                     <button onClick={() => setDialogTest(test)} className="w-full text-left p-2 rounded-md hover:bg-accent/50 transition-colors flex items-center justify-between group">
                                       <span className="text-sm">{test.replace(/^\d+\.\s*/, '')}</span>

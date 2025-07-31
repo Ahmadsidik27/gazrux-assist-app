@@ -19,7 +19,10 @@ export type AnalyzeIssueInput = z.infer<typeof AnalyzeIssueInputSchema>;
 
 const AnalyzeIssueOutputSchema = z.object({
   possibleCauses: z.array(
-    z.string().describe('Kemungkinan penyebab dari masalah kendaraan yang dijelaskan.')
+    z.object({
+      cause: z.string().describe('Kemungkinan penyebab dari masalah kendaraan yang dijelaskan.'),
+      details: z.string().describe('Penjelasan rinci tentang penyebab ini, dapat mencakup tabel atau gambar berformat Markdown.'),
+    })
   ).describe('Daftar kemungkinan penyebab masalah kendaraan yang dijelaskan, diurutkan berdasarkan probabilitas.'),
   clarificationQuestions: z.array(
     z.string().describe('Pertanyaan untuk diajukan kepada mekanik untuk mengklarifikasi masalah.')
@@ -40,9 +43,20 @@ const analyzeIssuePrompt = ai.definePrompt({
 
 Mekanik telah menjelaskan masalah berikut: {{{issueDescription}}}
 
-Berdasarkan deskripsi ini, berikan daftar kemungkinan penyebab masalah, diurutkan berdasarkan probabilitas (paling mungkin terlebih dahulu). Gunakan alat googleSearch untuk mencari informasi tentang kendaraan dan masalah untuk memberikan diagnosis yang lebih akurat. Jika deskripsinya tidak jelas atau tidak jelas, berikan daftar pertanyaan untuk diajukan kepada mekanik untuk mengklarifikasi masalah. Pertanyaan harus spesifik dan relevan untuk mempersempit kemungkinan penyebab.
+Berdasarkan deskripsi ini, berikan daftar kemungkinan penyebab masalah, diurutkan berdasarkan probabilitas (paling mungkin terlebih dahulu). Untuk setiap penyebab, berikan nama penyebab ('cause') dan penjelasan rinci ('details'). Penjelasan rinci harus mudah dipahami dan dapat mencakup tabel berformat Markdown untuk data terstruktur atau tautan gambar jika relevan. Gunakan alat googleSearch untuk mencari informasi tentang kendaraan dan masalah untuk memberikan diagnosis yang lebih akurat.
 
-Keluarkan kemungkinan penyebab dan pertanyaan klarifikasi (jika ada) dalam format JSON.
+Contoh format tabel Markdown:
+| Komponen | Status | Rekomendasi |
+|---|---|---|
+| Baterai | Lemah | Isi daya atau ganti |
+| Alternator | Tidak mengisi daya | Periksa sabuk dan koneksi |
+
+Contoh format gambar Markdown:
+![Diagram sistem pengapian](https://placehold.co/400x300.png)
+
+Jika deskripsinya tidak jelas atau tidak jelas, berikan daftar pertanyaan untuk diajukan kepada mekanik untuk mengklarifikasi masalah.
+
+Keluarkan kemungkinan penyebab (dengan detail) dan pertanyaan klarifikasi (jika ada) dalam format JSON.
 `,
 });
 
