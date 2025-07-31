@@ -35,10 +35,13 @@ export const searchGoogleDrive = ai.defineTool(
   },
   async (input) => {
     try {
-      // Inisialisasi Google Drive API Client
+      // Inisialisasi Google Drive API Client menggunakan otentikasi yang benar
+      const auth = new google.auth.GoogleAuth({
+        scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+      });
       const drive = google.drive({
         version: 'v3',
-        auth: process.env.GOOGLE_API_KEY, 
+        auth: auth, 
       });
 
       // Kueri ini membatasi pencarian ke folder yang ditentukan dan semua sub-foldernya, lalu mencari berdasarkan nama atau konten.
