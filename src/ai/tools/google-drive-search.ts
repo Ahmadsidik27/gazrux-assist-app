@@ -19,13 +19,13 @@ const FileSearchResultSchema = z.object({
 });
 
 // PENTING: ID folder Google Drive yang ditargetkan untuk pencarian.
-// Folder ini DAN SEMUA FILE DI DALAMNYA harus dapat diakses oleh akun layanan atau dibagikan secara publik.
+// Folder ini, SEMUA sub-folder, DAN SEMUA FILE DI DALAMNYA harus dapat diakses oleh akun layanan atau dibagikan secara publik ("Siapa saja yang memiliki link").
 const DRIVE_FOLDER_ID = '0B9pVa3_DLWq7Q2FNcFdaMHFwdVE';
 
 export const searchGoogleDrive = ai.defineTool(
   {
     name: 'searchGoogleDrive',
-    description: `Mencari file di dalam folder Google Drive bengkel yang spesifik (${DRIVE_FOLDER_ID}). Berguna untuk menemukan manual perbaikan, buletin layanan teknis (TSB), dan dokumentasi internal lainnya.`,
+    description: `Mencari file di dalam folder Google Drive bengkel yang spesifik (${DRIVE_FOLDER_ID}), termasuk semua sub-foldernya. Berguna untuk menemukan manual perbaikan, buletin layanan teknis (TSB), dan dokumentasi internal lainnya.`,
     inputSchema: z.object({
       query: z.string().describe('Kueri pencarian (misalnya, "manual perbaikan Honda Civic 2015 P0301").'),
     }),
@@ -41,13 +41,15 @@ export const searchGoogleDrive = ai.defineTool(
         auth: process.env.GOOGLE_API_KEY, 
       });
 
-      // Kueri ini membatasi pencarian ke folder yang ditentukan dan mencari berdasarkan nama atau konten.
-      const searchQuery = `('${DRIVE_FOLDER_ID}' in parents) and (fullText contains '${input.query}' or name contains '${input.query}')`;
+      // Kueri ini membatasi pencarian ke folder yang ditentukan dan semua sub-foldernya, lalu mencari berdasarkan nama atau konten.
+      const searchQuery = `'${DRIVE_FOLDER_ID}' in parents and (fullText contains '${input.query}' or name contains '${input.query}')`;
 
       const response = await drive.files.list({
         q: searchQuery,
         fields: 'files(id, name, mimeType, webViewLink, fullFileExtension, description)',
-        pageSize: 10,
+        pageSize: 10, // Batasi jumlah hasil untuk menjaga kecepatan
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true,
       });
 
       const files = response.data.files?.map((file: any) => ({
