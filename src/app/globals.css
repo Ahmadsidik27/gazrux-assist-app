@@ -83,3 +83,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .toast-title {
+    @apply font-bold;
+  }
+  .toast-description {
+    @apply text-sm;
+  }
+}

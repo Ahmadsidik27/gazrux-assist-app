@@ -23,8 +23,8 @@ export async function analyzeIssue(issueDescription: string) {
     return result;
   } catch (error) {
     console.error('Error in analyzeIssue action:', error);
-    if (error instanceof Error && error.message.startsWith('Kesalahan Konfigurasi')) {
-        throw error;
+    if (error instanceof Error) {
+        throw error; // Re-throw the original error to be caught by the frontend
     }
     throw new Error('Gagal berkomunikasi dengan layanan AI. Silakan periksa konfigurasi kunci API Anda dan coba lagi nanti.');
   }
@@ -42,6 +42,9 @@ export async function suggestTests(issueDescription: string, potentialCause: str
         return result;
     } catch (error) {
         console.error('Error in suggestTests action:', error);
+        if (error instanceof Error) {
+            throw error;
+        }
         throw new Error('Gagal berkomunikasi dengan layanan AI. Silakan periksa konfigurasi kunci API Anda dan coba lagi nanti.');
     }
 }
@@ -56,7 +59,7 @@ export async function explainConcept(topic: string) {
     return result;
   } catch (error) {
     console.error('Error in explainConcept action:', error);
-     if (error instanceof Error && error.message.startsWith('Kesalahan Konfigurasi')) {
+     if (error instanceof Error) {
         throw error;
     }
     throw new Error('Gagal berkomunikasi dengan layanan AI. Silakan periksa konfigurasi kunci API Anda dan coba lagi nanti.');
@@ -73,7 +76,7 @@ export async function findManual(query: string) {
     return result;
   } catch (error) {
     console.error('Error in findManual action:', error);
-     if (error instanceof Error && error.message.startsWith('Kesalahan Konfigurasi')) {
+     if (error instanceof Error) {
         throw error;
     }
     throw new Error('Gagal berkomunikasi dengan layanan AI. Silakan periksa konfigurasi kunci API Anda dan coba lagi nanti.');

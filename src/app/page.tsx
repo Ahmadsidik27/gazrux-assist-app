@@ -227,11 +227,11 @@ export default function Home({
       try {
         const result = await analyzeIssue(issueDescription);
         setAnalysis(result);
-      } catch (e) {
+      } catch (e: any) {
         toast({
           variant: 'destructive',
-          title: 'Analisis Gagal',
-          description: e instanceof Error ? e.message : 'Terjadi kesalahan yang tidak diketahui.',
+          title: e.message.startsWith('Kesalahan Konfigurasi') ? 'Kesalahan Konfigurasi' : 'Analisis Gagal',
+          description: e.message,
         });
       }
     });
@@ -243,8 +243,8 @@ export default function Home({
       try {
         const result = await suggestTests(issueDescription, cause);
         setTestSuggestions(prev => ({ ...prev, [cause]: { loading: false, data: result.suggestedTests, error: null } }));
-      } catch (e) {
-        const errorMsg = e instanceof Error ? e.message : 'An unknown error occurred.';
+      } catch (e: any) {
+        const errorMsg = e.message;
         setTestSuggestions(prev => ({ ...prev, [cause]: { loading: false, data: null, error: errorMsg } }));
         toast({
           variant: 'destructive',
@@ -269,11 +269,11 @@ export default function Home({
       try {
         const result = await explainConcept(knowledgeQuery);
         setKnowledgeResult(result);
-      } catch (e) {
+      } catch (e: any) {
         toast({
           variant: 'destructive',
-          title: 'Penjelasan Gagal',
-          description: e instanceof Error ? e.message : 'Terjadi kesalahan yang tidak diketahui.',
+          title: e.message.startsWith('Kesalahan Konfigurasi') ? 'Kesalahan Konfigurasi' : 'Penjelasan Gagal',
+          description: e.message,
         });
       }
     });
@@ -294,11 +294,11 @@ export default function Home({
       try {
         const result = await findManual(manualQuery);
         setManualResult(result);
-      } catch (e) {
+      } catch (e: any) {
         toast({
           variant: 'destructive',
-          title: 'Pencarian Manual Gagal',
-          description: e instanceof Error ? e.message : 'Terjadi kesalahan yang tidak diketahui.',
+          title: e.message.startsWith('Kesalahan Konfigurasi') ? 'Kesalahan Konfigurasi' : 'Pencarian Manual Gagal',
+          description: e.message,
         });
       }
     });
