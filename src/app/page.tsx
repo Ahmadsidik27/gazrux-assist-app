@@ -26,58 +26,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
 
-type RepairGuide = {
-  title: string;
-  image: {
-    src: string;
-    hint: string;
-  };
-  steps: string[];
-  specs: string;
-};
-
-const repairGuides: Record<string, RepairGuide> = {
-  'periksa tekanan bahan bakar': {
-    title: 'Prosedur: Periksa Tekanan Bahan Bakar',
-    image: { src: 'https://placehold.co/400x300', hint: 'diagram sistem bahan bakar' },
-    steps: [
-      "Sambungkan pengukur tekanan bahan bakar ke port servis rel bahan bakar.",
-      "Putar kunci kontak ke posisi 'ON' tanpa menyalakan mesin.",
-      "Catat pembacaan tekanan.",
-      "Nyalakan mesin dan catat tekanan saat idle."
-    ],
-    specs: "Tekanan yang diharapkan: 40-60 PSI (tergantung model)."
-  },
-  'periksa busi': {
-    title: 'Prosedur: Periksa Busi',
-    image: { src: 'https://placehold.co/400x300', hint: 'busi mesin' },
-    steps: [
-      "Lepaskan terminal negatif baterai.",
-      "Lepaskan koil pengapian atau kabel busi.",
-      "Gunakan kunci busi, lepaskan setiap busi dengan hati-hati.",
-      "Periksa elektroda dari keausan, endapan, atau kerusakan."
-    ],
-    specs: "Periksa manual untuk celah busi yang benar. Ganti jika perlu."
-  },
-  'pindai obd-ii untuk kode': {
-    title: 'Prosedur: Pindai OBD-II untuk Kode',
-    image: { src: 'https://placehold.co/400x300', hint: 'port pemindai obd2' },
-    steps: [
-      "Temukan port OBD-II, biasanya di bawah dasbor di sisi pengemudi.",
-      "Sambungkan pemindai OBD-II.",
-      "Putar kunci kontak ke posisi 'ON'.",
-      "Ikuti instruksi pemindai untuk membaca Kode Masalah Diagnostik (DTC)."
-    ],
-    specs: "Catat semua kode aktif atau yang tertunda untuk diagnosis lebih lanjut."
-  },
-};
-
-const findRepairGuide = (testName: string): RepairGuide | null => {
-  const lowerTestName = testName.toLowerCase();
-  const foundKey = Object.keys(repairGuides).find(key => lowerTestName.includes(key));
-  return foundKey ? repairGuides[foundKey] : null;
-};
-
 // Helper function to detect if content contains Google Drive links and format them
 const renderDriveLinks = (content: string) => {
     // Basic check for Google Drive link pattern from the tool
@@ -213,61 +161,6 @@ function MarkdownContent({ content }: { content: string }) {
   );
 }
 
-
-function RepairGuideDialog({ open, onOpenChange, testName }: { open: boolean; onOpenChange: (open: boolean) => void; testName: string | null }) {
-  if (!testName) return null;
-
-  const guide = findRepairGuide(testName);
-
-  if (!guide) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Panduan Perbaikan Tidak Tersedia</DialogTitle>
-            <DialogDescription>
-              Panduan langkah demi langkah yang terperinci untuk &quot;{testName}&quot; tidak tersedia di manual simulasi kami.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><FileCog className="w-5 h-5 text-primary" /> {guide.title}</DialogTitle>
-          <DialogDescription>Ikuti langkah-langkah ini dengan cermat. Lihat manual bengkel resmi untuk spesifikasi terperinci.</DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="flex justify-center">
-            <Image
-              src={guide.image.src}
-              alt={guide.title}
-              width={300}
-              height={225}
-              className="rounded-lg border shadow-sm"
-              data-ai-hint={guide.image.hint}
-            />
-          </div>
-          <div>
-            <h4 className="font-semibold mb-2">Langkah-langkah:</h4>
-            <ol className="list-decimal list-inside space-y-2 text-sm">
-              {guide.steps.map((step, i) => <li key={i}>{step}</li>)}
-            </ol>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-2">Spesifikasi:</h4>
-            <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">{guide.specs}</p>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 const GazruxLogo = () => (
     <Image
       src="/logo.png"
@@ -291,7 +184,6 @@ export default function Home() {
   const [issueDescription, setIssueDescription] = useState('');
   const [analysis, setAnalysis] = useState<AnalyzeIssueOutput | null>(null);
   const [testSuggestions, setTestSuggestions] = useState<TestSuggestionsState>({});
-  const [dialogTest, setDialogTest] = useState<string | null>(null);
   
   const [knowledgeQuery, setKnowledgeQuery] = useState('');
   const [knowledgeResult, setKnowledgeResult] = useState<ExplainConceptOutput | null>(null);
@@ -726,10 +618,7 @@ export default function Home() {
                                 <ul className="list-none space-y-2">
                                   {testSuggestions[causeInfo.cause]!.data!.split('\n').filter(line => line.trim()).map((test, testIndex) => (
                                     <li key={testIndex}>
-                                      <button onClick={() => setDialogTest(test)} className="w-full text-left p-2 rounded-md hover:bg-accent/10 transition-colors flex items-center justify-between group">
-                                        <span className="text-sm">{test.replace(/^\d+\.\s*/, '')}</span>
-                                        <ChevronsRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                                      </button>
+                                      <p className="text-sm">{test.replace(/^\d+\.\s*/, '')}</p>
                                     </li>
                                   ))}
                                 </ul>
@@ -747,7 +636,6 @@ export default function Home() {
            </div>
         </div>
       </main>
-      <RepairGuideDialog open={!!dialogTest} onOpenChange={(open) => !open && setDialogTest(null)} testName={dialogTest} />
     </div>
   );
 }
