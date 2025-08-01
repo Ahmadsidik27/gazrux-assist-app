@@ -297,7 +297,7 @@ export default function Home({
       } catch (e: any) {
         toast({
           variant: 'destructive',
-          title: e.message.startsWith('Kesalahan Konfigurasi') ? 'Kesalahan Konfigurasi' : 'Pencarian Manual Gagal',
+          title: e.message.startsWith('Kesalahan Konfigurasi') ? 'Kesalahan Konfigurasi' : 'Pencarian Gagal',
           description: e.message,
         });
       }
