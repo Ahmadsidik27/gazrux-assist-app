@@ -415,7 +415,8 @@ export default function Home() {
     });
   };
 
-  const handleResultClick = (url: string) => {
+  const handleResultClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
+    e.preventDefault();
     if (!isPremiumActive) {
        toast({
         variant: "destructive",
@@ -649,12 +650,12 @@ export default function Home() {
                       <p className="text-muted-foreground text-center">Tidak ada manual yang cocok ditemukan.</p>
                   ) : (
                     manualResult.results.map((result, index) => (
-                      <div key={index} onClick={() => handleResultClick(result.link)} className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                      <div key={index} className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                         <div className="flex items-start gap-3">
                             {result.source === 'Google Drive' ? <HardDrive className="w-5 h-5 mt-1 text-primary"/> : <LinkIcon className="w-5 h-5 mt-1 text-primary"/>}
                             <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <p className="font-semibold text-base text-primary hover:underline">{result.title}</p>
+                                  <a href={result.link} onClick={(e) => handleResultClick(e, result.link)} className="font-semibold text-base text-primary hover:underline">{result.title}</a>
                                   {result.isPdf && <Badge variant="destructive">PDF</Badge>}
                                   <Badge variant="secondary">{result.source}</Badge>
                                 </div>
