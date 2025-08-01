@@ -1,39 +1,42 @@
-# Firebase Studio
+# Gazrux Assist: Partner AI di Garasi Anda
 
-This is a NextJS starter in Firebase Studio.
+Ini adalah aplikasi Next.js yang dirancang untuk membantu mekanik dalam mendiagnosis dan memperbaiki masalah kendaraan dengan cepat dan akurat.
 
-To get started, take a look at src/app/page.tsx.
+## Konfigurasi Wajib (Agar Aplikasi Berfungsi)
 
-## Konfigurasi
+Aplikasi ini **TIDAK AKAN BERFUNGSI** sampai Anda menyelesaikan langkah-langkah konfigurasi di bawah ini. Anda perlu memberikan "kunci" API agar aplikasi dapat terhubung ke layanan Google.
 
-Aplikasi ini memerlukan beberapa kunci API dan variabel lingkungan untuk berfungsi dengan benar, terutama untuk fitur pencarian.
+### Langkah 1: Buat File Konfigurasi `.env`
 
-### Langkah-langkah Konfigurasi
+Di terminal Anda, jalankan perintah berikut untuk menyalin template ke file konfigurasi yang sebenarnya.
 
-1.  **Buat file `.env`**: Salin file `env.template` menjadi file baru bernama `.env` di root proyek Anda.
-    
-    ```bash
-    cp .env.template .env
-    ```
+```bash
+cp .env.template .env
+```
 
-2.  **Dapatkan Kunci API SerpApi**:
-    *   Kunjungi [SerpApi](https://serpapi.com/) dan daftar untuk mendapatkan akun.
-    *   Dapatkan kunci API Anda dari dashboard SerpApi.
-    *   Tambahkan kunci tersebut ke file `.env` Anda:
-        `SERPAPI_API_KEY="kunci_api_serpapi_anda"`
+### Langkah 2: Isi File `.env` Anda
 
-3.  **Siapkan Kredensial Google Cloud & Drive**:
-    *   **Buat Akun Layanan**: Buka [Google Cloud Console](https://console.cloud.google.com/iam-admin/serviceaccounts), pilih proyek Anda, dan buat akun layanan baru. Beri nama (misalnya, `gazrux-assist-service-account`).
-    *   **Buat Kunci JSON**: Setelah akun layanan dibuat, buka tab "Keys", klik "Add Key", pilih "Create new key", dan unduh file kredensial dalam format JSON.
-    *   **Aktifkan Google Drive API**: Di [Google Cloud Console](https://console.cloud.google.com/apis/library/drive.googleapis.com), pastikan Google Drive API diaktifkan untuk proyek Anda.
-    *   **Bagikan Folder Google Drive**:
-        *   Buat folder di Google Drive Anda tempat Anda akan menyimpan semua manual perbaikan PDF.
-        *   Dapatkan **ID Folder**. ID ini ada di URL (misalnya, `https://drive.google.com/drive/folders/ID_FOLDER_ANDA_ADA_DI_SINI`).
-        *   Klik kanan pada folder, pilih "Share", dan bagikan folder tersebut dengan alamat email akun layanan yang Anda buat tadi (misalnya, `nama-akun-layanan@nama-proyek-anda.iam.gserviceaccount.com`). Berikan setidaknya akses "Viewer".
-        *   Tambahkan ID folder ke file `.env` Anda: `DRIVE_FOLDER_ID="id_folder_google_drive_anda"`
-    *   **Konfigurasi Kredensial JSON**: Salin **seluruh isi** file JSON yang Anda unduh dan tempelkan ke file `.env` Anda di dalam tanda kutip:
-        `GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type": "service_account", ...}'`
+Buka file `.env` yang baru saja Anda buat dan isi setiap variabel dengan nilai yang benar.
 
-4.  **Restart Aplikasi**: Setelah mengisi semua variabel di file `.env`, hentikan dan jalankan kembali server pengembangan Anda agar perubahan diterapkan.
+#### 1. `SERPAPI_API_KEY` (Untuk Pencarian Web)
+- Kunjungi [SerpApi](https://serpapi.com/) dan daftar untuk mendapatkan akun.
+- Dapatkan kunci API Anda dari dashboard.
+- Tempelkan di file `.env`: `SERPAPI_API_KEY="kunci_api_anda_di_sini"`
 
-# gazrux-assist-app
+#### 2. `DRIVE_FOLDER_ID` (Folder Manual PDF Anda)
+- Buat sebuah folder di Google Drive Anda.
+- Letakkan semua file PDF manual perbaikan di dalam folder ini.
+- Buka folder tersebut, dan salin ID folder dari URL. Contoh: `https://drive.google.com/drive/folders/INI_ADALAH_ID_FOLDER_ANDA`
+- Tempelkan di file `.env`: `DRIVE_FOLDER_ID="id_folder_anda_di_sini"`
+
+#### 3. `GOOGLE_APPLICATION_CREDENTIALS_JSON` (Untuk Akses Google Drive)
+- **Aktifkan Drive API**: Buka [Google Cloud Console](https://console.cloud.google.com/apis/library/drive.googleapis.com) dan aktifkan Google Drive API untuk proyek Anda.
+- **Buat Akun Layanan**: Buka [Halaman Akun Layanan](https://console.cloud.google.com/iam-admin/serviceaccounts), pilih proyek Anda, dan buat akun layanan baru. Anda bisa menamainya `gazrux-assist-service`.
+- **Buat Kunci JSON**: Setelah akun layanan dibuat, klik pada akun tersebut, buka tab "Keys", klik "Add Key" -> "Create new key", pilih **JSON**, dan unduh file kredensialnya.
+- **Bagikan Folder Drive**: Kembali ke folder Google Drive Anda. Klik kanan -> "Share" -> dan bagikan folder tersebut dengan alamat email akun layanan yang baru saja Anda buat (contoh: `gazrux-assist-service@nama-proyek-anda.iam.gserviceaccount.com`). Beri akses sebagai "Viewer" atau "Content manager".
+- **Tempelkan Kredensial**: Buka file JSON yang Anda unduh, salin **SELURUH ISINYA**, dan tempelkan ke file `.env` di dalam tanda kutip tunggal.
+  `GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type": "service_account", ...}'`
+
+### Langkah 3: Restart Aplikasi Anda
+
+Setelah semua variabel di file `.env` terisi, hentikan server pengembangan Anda (dengan Ctrl+C) dan jalankan kembali (`npm run dev`). Aplikasi sekarang akan berfungsi dengan benar.
