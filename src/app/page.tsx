@@ -15,8 +15,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
 import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal, HelpCircle, FileType, FileSearch, Link as LinkIcon, HardDrive } from 'lucide-react';
@@ -291,7 +289,6 @@ export default function Home() {
   const [issueDescription, setIssueDescription] = useState('');
   const [analysis, setAnalysis] = useState<AnalyzeIssueOutput | null>(null);
   const [testSuggestions, setTestSuggestions] = useState<TestSuggestionsState>({});
-  const [isBeginnerMode, setIsBeginnerMode] = useState(false);
   const [dialogTest, setDialogTest] = useState<string | null>(null);
   
   const [knowledgeQuery, setKnowledgeQuery] = useState('');
@@ -440,12 +437,6 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground">Partner AI Anda di garasi</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center space-x-2">
-                <Label htmlFor="beginner-mode" className="text-sm font-medium whitespace-nowrap">Mode Pemula</Label>
-                <Switch id="beginner-mode" checked={isBeginnerMode} onCheckedChange={setIsBeginnerMode} />
-              </div>
-            </div>
           </div>
         </div>
       </header>
@@ -579,14 +570,6 @@ export default function Home() {
                   <CardDescription>Berdasarkan deskripsi Anda, berikut adalah kemungkinan penyebab dan pertanyaan klarifikasi.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {isBeginnerMode && (
-                    <Alert className="mb-4 border-accent bg-accent/10 text-accent-foreground">
-                      <Lightbulb className="h-4 w-4 text-accent" />
-                      <AlertTitle>Tips untuk Pemula</AlertTitle>
-                      <AlertDescription>Ini hanyalah kemungkinan penyebab. Menjalankan tes yang disarankan sangat penting untuk memastikan masalah sebenarnya.</AlertDescription>
-                    </Alert>
-                  )}
-
                   {analysis.clarificationQuestions && analysis.clarificationQuestions.length > 0 && (
                      <Alert className="mb-4">
                       <HelpCircle className="h-4 w-4" />
