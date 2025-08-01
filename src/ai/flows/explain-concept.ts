@@ -11,6 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {googleSearch} from '../tools/google-search';
+import { searchGoogleDrive } from '../tools/google-drive-search';
 
 const ExplainConceptInputSchema = z.object({
   topic: z.string().describe('Topik atau konsep otomotif yang akan dijelaskan.'),
@@ -30,10 +31,12 @@ const explainConceptPrompt = ai.definePrompt({
   name: 'explainConceptPrompt',
   input: {schema: ExplainConceptInputSchema},
   output: {schema: ExplainConceptOutputSchema},
-  tools: [googleSearch],
+  tools: [googleSearch, searchGoogleDrive],
   prompt: `Anda adalah seorang ahli teknologi otomotif. Jelaskan konsep berikut: {{{topic}}}.
 
-Gunakan alat googleSearch untuk mengumpulkan informasi yang akurat dan terkini.
+Gunakan alat yang tersedia untuk mengumpulkan informasi yang akurat dan terkini:
+- **Prioritaskan pencarian di Google Drive terlebih dahulu** menggunakan 'searchGoogleDrive' untuk menemukan dokumentasi internal atau manual yang relevan.
+- Jika tidak ada informasi yang relevan di Google Drive, gunakan 'googleSearch' untuk melengkapi informasi dari web.
 
 Berikan penjelasan yang jelas, ringkas, dan mudah dipahami. Gunakan format Markdown, termasuk daftar berpoin atau bernomor, untuk menyusun informasi agar mudah dibaca. Mulailah penjelasan secara langsung tanpa kalimat pembuka yang berlebihan.
 `,

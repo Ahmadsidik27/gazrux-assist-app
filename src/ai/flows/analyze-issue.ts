@@ -49,7 +49,7 @@ Berdasarkan deskripsi ini, berikan daftar kemungkinan penyebab masalah, diurutka
 Gunakan alat yang tersedia untuk mencari informasi tambahan:
 - Gunakan 'searchGoogleDrive' untuk mencari manual perbaikan, buletin layanan teknis (TSB), atau diagram pengkabelan yang relevan di Google Drive.
 - Gunakan 'googleSearch' untuk mencari informasi umum, masalah yang diketahui, dan prosedur perbaikan dari web.
-- Prioritaskan informasi dari Google Drive jika tersedia, karena itu adalah sumber internal.
+- **Prioritaskan informasi dari Google Drive terlebih dahulu.** Gunakan hanya jika tidak ada informasi relevan yang ditemukan di Google Drive.
 
 Contoh format tabel Markdown:
 | Komponen | Status | Rekomendasi |
