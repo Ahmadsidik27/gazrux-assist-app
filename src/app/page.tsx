@@ -14,14 +14,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal, HelpCircle, FileType, FileSearch, Link as LinkIcon, HardDrive, Gem, Sparkles } from 'lucide-react';
+import { Wrench, BookOpen, Search, AlertCircle, Loader2, HelpCircle, FileType, FileSearch, Link as LinkIcon, HardDrive } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
@@ -65,7 +63,6 @@ function MarkdownContent({ content }: { content: string }) {
   // A more robust regex to handle various Markdown elements gracefully.
   const parts = content.split(/(\n\n|`{3}[\s\S]*?`{3}|!\[.*?\]\(.*?\)|\|-+\|)/g).filter(Boolean);
 
-  let inTable = false;
   let tableRows: string[][] = [];
 
   const renderTable = () => {
@@ -171,8 +168,6 @@ const GazruxLogo = () => (
     />
 );
 
-const MAX_PREMIUM_VISITS = 3;
-
 export default function Home() {
   const { toast } = useToast();
   const [isAnalyzing, startAnalysisTransition] = useTransition();
@@ -190,11 +185,6 @@ export default function Home() {
 
   const [manualQuery, setManualQuery] = useState('');
   const [manualResult, setManualResult] = useState<FindManualOutput | null>(null);
-  
-  const [isPremiumActive, setIsPremiumActive] = useState(false);
-  const [visitCount, setVisitCount] = useState(0);
-
-  const hasVisitsLeft = visitCount < MAX_PREMIUM_VISITS;
 
   const clearState = (tab: string) => {
     if(tab !== 'diagnose') {
@@ -297,6 +287,13 @@ export default function Home() {
       try {
         const result = await findManual(manualQuery);
         setManualResult(result);
+        if (!result.results || result.results.length === 0) {
+          toast({
+            variant: 'default',
+            title: 'Tidak Ada Hasil',
+            description: 'Tidak ada manual yang cocok dengan kueri Anda ditemukan.',
+          });
+        }
       } catch (e) {
         toast({
           variant: 'destructive',
@@ -305,97 +302,6 @@ export default function Home() {
         });
       }
     });
-  };
-
-  const handleResultClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
-    e.preventDefault();
-    if (!isPremiumActive) {
-       toast({
-        variant: "destructive",
-        title: "Fitur Premium",
-        description: "Aktifkan uji coba gratis untuk mengakses tautan ini.",
-      });
-      return;
-    }
-
-    if (!hasVisitsLeft) {
-      toast({
-        variant: "destructive",
-        title: "Akses Ditolak",
-        description: "Anda telah menggunakan semua kuota kunjungan gratis.",
-      });
-      return;
-    }
-
-    setVisitCount(prev => prev + 1);
-    window.open(url, '_blank', 'noopener,noreferrer');
-
-    if (visitCount + 1 >= MAX_PREMIUM_VISITS) {
-       toast({
-        title: "Uji Coba Berakhir",
-        description: "Anda telah menggunakan semua kuota kunjungan gratis Anda.",
-      });
-    }
-  };
-
-  const handleActivatePremium = () => {
-    setIsPremiumActive(true);
-    setVisitCount(0);
-    toast({
-      title: 'Uji Coba Gratis Diaktifkan!',
-      description: `Anda memiliki ${MAX_PREMIUM_VISITS} kali kunjungan gratis ke tautan manual.`,
-    });
-  };
-  
-  const Paywall = ({ onActivate }: { onActivate: () => void }) => {
-    const visitsEnded = isPremiumActive && !hasVisitsLeft;
-    return (
-      <Card className="text-center bg-muted/50 border-dashed">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-center gap-2 text-accent-foreground">
-            <Gem className="w-6 h-6" /> {visitsEnded ? 'Uji Coba Berakhir' : 'Fitur Premium'}
-          </CardTitle>
-          <CardDescription>
-            {visitsEnded 
-              ? 'Anda telah menggunakan semua kuota kunjungan gratis Anda.'
-              : 'Akses ribuan manual perbaikan resmi, TSB, dan diagram kelistrikan langsung dari database kami.'
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {visitsEnded ? (
-             <Button size="lg" disabled>Hubungi Penjualan</Button>
-          ) : (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  <Sparkles className="mr-2 h-4 w-4" />Mulai Uji Coba Gratis
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Aktifkan Uji Coba Gratis?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Dengan mengaktifkan, Anda akan mendapatkan {MAX_PREMIUM_VISITS} kali kunjungan gratis ke tautan manual. Pencarian tetap tidak terbatas. Tidak ada biaya yang akan dikenakan untuk simulasi ini.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction onClick={onActivate}>
-                    Ya, Aktifkan
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-        </CardContent>
-        {visitsEnded && (
-            <CardFooter>
-                <p className="text-xs text-muted-foreground">Untuk melanjutkan penggunaan, silakan hubungi tim penjualan kami.</p>
-            </CardFooter>
-        )}
-      </Card>
-    );
   };
 
   const renderSkeleton = () => (
@@ -438,7 +344,7 @@ export default function Home() {
                 <CardHeader>
                     <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="diagnose"><Wrench className="w-4 h-4 mr-2"/>Diagnosis</TabsTrigger>
-                        <TabsTrigger value="manuals" className="flex items-center gap-2"><Gem className="w-4 h-4 text-accent-foreground/80"/>Workshop Manual</TabsTrigger>
+                        <TabsTrigger value="manuals"><FileSearch className="w-4 h-4 mr-2"/>Workshop Manual</TabsTrigger>
                         <TabsTrigger value="knowledge"><BookOpen className="w-4 h-4 mr-2"/>Pusat Pengetahuan</TabsTrigger>
                     </TabsList>
                 </CardHeader>
@@ -465,28 +371,22 @@ export default function Home() {
                     
                     {/* Manuals Tab */}
                     <TabsContent value="manuals">
-                      {isPremiumActive ? (
-                        <>
-                          <CardDescription className="mb-4 text-center">
-                            Cari manual bengkel, TSB, atau panduan perbaikan. Kuota kunjungan tersisa: {hasVisitsLeft ? MAX_PREMIUM_VISITS - visitCount : 0}
-                          </CardDescription>
-                          <div className="flex flex-col h-full justify-between gap-2">
-                            <Input
-                              placeholder="contoh: 'manual perbaikan Toyota Avanza'"
-                              value={manualQuery}
-                              onChange={(e) => setManualQuery(e.target.value)}
-                              disabled={isFinding}
-                              className="text-base"
-                            />
-                            <Button onClick={handleFindManual} disabled={isFinding || !manualQuery} size="lg">
-                              {isFinding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                              Cari Manual
-                            </Button>
-                          </div>
-                        </>
-                      ) : (
-                        <Paywall onActivate={handleActivatePremium} />
-                      )}
+                      <CardDescription className="mb-4 text-center">
+                        Cari manual bengkel, TSB, atau panduan perbaikan.
+                      </CardDescription>
+                      <div className="flex flex-col h-full justify-between gap-2">
+                        <Input
+                          placeholder="contoh: 'manual perbaikan Toyota Avanza'"
+                          value={manualQuery}
+                          onChange={(e) => setManualQuery(e.target.value)}
+                          disabled={isFinding}
+                          className="text-base"
+                        />
+                        <Button onClick={handleFindManual} disabled={isFinding || !manualQuery} size="lg">
+                          {isFinding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Cari Manual
+                        </Button>
+                      </div>
                     </TabsContent>
 
                     {/* Knowledge Tab */}
@@ -534,7 +434,7 @@ export default function Home() {
                     <FileSearch className="w-6 h-6 text-primary" /> Hasil Pencarian untuk: "{manualQuery}"
                   </CardTitle>
                   <CardDescription>
-                    Menampilkan {manualResult.results.length} hasil yang paling relevan. {isPremiumActive && `Sisa kuota kunjungan: ${hasVisitsLeft ? MAX_PREMIUM_VISITS - visitCount : 0}`}.
+                    Menampilkan {manualResult.results.length} hasil yang paling relevan.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -542,19 +442,25 @@ export default function Home() {
                       <p className="text-muted-foreground text-center">Tidak ada manual yang cocok ditemukan.</p>
                   ) : (
                     manualResult.results.map((result, index) => (
-                      <div key={index} className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <a 
+                        key={index}
+                        href={result.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
                         <div className="flex items-start gap-3">
                             {result.source === 'Google Drive' ? <HardDrive className="w-5 h-5 mt-1 text-primary"/> : <LinkIcon className="w-5 h-5 mt-1 text-primary"/>}
                             <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <a href={result.link} onClick={(e) => handleResultClick(e, result.link)} className="font-semibold text-base text-primary hover:underline">{result.title}</a>
+                                  <p className="font-semibold text-base text-primary hover:underline">{result.title}</p>
                                   {result.isPdf && <Badge variant="destructive">PDF</Badge>}
                                   <Badge variant="secondary">{result.source}</Badge>
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1">{result.snippet}</p>
                             </div>
                         </div>
-                      </div>
+                      </a>
                     ))
                   )}
                 </CardContent>
@@ -564,7 +470,7 @@ export default function Home() {
             {analysis && !isAnalyzing && activeTab === 'diagnose' && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><FileText className="w-6 h-6 text-primary" /> Hasil Diagnosis</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><Wrench className="w-6 h-6 text-primary" /> Hasil Diagnosis</CardTitle>
                   <CardDescription>Berdasarkan deskripsi Anda, berikut adalah kemungkinan penyebab dan pertanyaan klarifikasi.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -638,4 +544,3 @@ export default function Home() {
       </main>
     </div>
   );
-}
