@@ -278,7 +278,7 @@ const GazruxLogo = () => (
     />
 );
 
-const MAX_PREMIUM_TRIALS = 3;
+const MAX_PREMIUM_VISITS = 3;
 
 export default function Home() {
   const { toast } = useToast();
@@ -299,10 +299,10 @@ export default function Home() {
   const [manualQuery, setManualQuery] = useState('');
   const [manualResult, setManualResult] = useState<FindManualOutput | null>(null);
   
-  const [isPremium, setIsPremium] = useState(false);
-  const [trialCount, setTrialCount] = useState(0);
+  const [isPremiumActive, setIsPremiumActive] = useState(false);
+  const [visitCount, setVisitCount] = useState(0);
 
-  const hasTrialsLeft = trialCount < MAX_PREMIUM_TRIALS;
+  const hasVisitsLeft = visitCount < MAX_PREMIUM_VISITS;
 
   const clearState = (tab: string) => {
     if(tab !== 'diagnose') {
@@ -399,23 +399,12 @@ export default function Home() {
       });
       return;
     }
-    if (!hasTrialsLeft && isPremium) {
-      toast({
-        variant: 'destructive',
-        title: 'Uji Coba Berakhir',
-        description: 'Anda telah menggunakan semua kesempatan uji coba gratis.',
-      });
-      return;
-    }
 
     startFindingTransition(async () => {
       setManualResult(null);
       try {
         const result = await findManual(manualQuery);
         setManualResult(result);
-        if (isPremium) {
-          setTrialCount(prev => prev + 1);
-        }
       } catch (e) {
         toast({
           variant: 'destructive',
@@ -426,32 +415,55 @@ export default function Home() {
     });
   };
 
+  const handleResultClick = (url: string) => {
+    if (!isPremiumActive || !hasVisitsLeft) {
+      toast({
+        variant: "destructive",
+        title: "Akses Ditolak",
+        description: isPremiumActive 
+          ? "Anda telah menggunakan semua kuota kunjungan gratis."
+          : "Aktifkan uji coba gratis untuk mengakses tautan ini.",
+      });
+      return;
+    }
+
+    setVisitCount(prev => prev + 1);
+    window.open(url, '_blank', 'noopener,noreferrer');
+
+    if (visitCount + 1 >= MAX_PREMIUM_VISITS) {
+       toast({
+        title: "Uji Coba Berakhir",
+        description: "Anda telah menggunakan semua kuota kunjungan gratis Anda.",
+      });
+    }
+  };
+
   const handleActivatePremium = () => {
-    setIsPremium(true);
-    setTrialCount(0);
+    setIsPremiumActive(true);
+    setVisitCount(0);
     toast({
       title: 'Uji Coba Gratis Diaktifkan!',
-      description: `Anda memiliki ${MAX_PREMIUM_TRIALS} kali pencarian manual gratis.`,
+      description: `Anda memiliki ${MAX_PREMIUM_VISITS} kali kunjungan gratis ke tautan manual.`,
     });
   };
   
   const Paywall = ({ onActivate }: { onActivate: () => void }) => {
-    const trialsEnded = trialCount >= MAX_PREMIUM_TRIALS;
+    const visitsEnded = isPremiumActive && !hasVisitsLeft;
     return (
       <Card className="text-center bg-muted/50 border-dashed">
         <CardHeader>
           <CardTitle className="flex items-center justify-center gap-2 text-accent-foreground">
-            <Gem className="w-6 h-6" /> {trialsEnded ? 'Uji Coba Berakhir' : 'Fitur Premium'}
+            <Gem className="w-6 h-6" /> {visitsEnded ? 'Uji Coba Berakhir' : 'Fitur Premium'}
           </CardTitle>
           <CardDescription>
-            {trialsEnded 
-              ? 'Anda telah menggunakan semua kesempatan uji coba gratis Anda.'
+            {visitsEnded 
+              ? 'Anda telah menggunakan semua kuota kunjungan gratis Anda.'
               : 'Akses ribuan manual perbaikan resmi, TSB, dan diagram kelistrikan langsung dari database kami.'
             }
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {trialsEnded ? (
+          {visitsEnded ? (
              <Button size="lg" disabled>Hubungi Penjualan</Button>
           ) : (
             <AlertDialog>
@@ -464,7 +476,7 @@ export default function Home() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Aktifkan Uji Coba Gratis?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Dengan mengaktifkan, Anda akan mendapatkan {MAX_PREMIUM_TRIALS} kali pencarian gratis untuk fitur Workshop Manual. Tidak ada biaya yang akan dikenakan untuk simulasi ini.
+                    Dengan mengaktifkan, Anda akan mendapatkan {MAX_PREMIUM_VISITS} kali kunjungan gratis ke tautan manual. Pencarian tetap tidak terbatas. Tidak ada biaya yang akan dikenakan untuk simulasi ini.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -477,7 +489,7 @@ export default function Home() {
             </AlertDialog>
           )}
         </CardContent>
-        {trialsEnded && (
+        {visitsEnded && (
             <CardFooter>
                 <p className="text-xs text-muted-foreground">Untuk melanjutkan penggunaan, silakan hubungi tim penjualan kami.</p>
             </CardFooter>
@@ -553,10 +565,10 @@ export default function Home() {
                     
                     {/* Manuals Tab */}
                     <TabsContent value="manuals">
-                      {isPremium && hasTrialsLeft ? (
+                      {isPremiumActive ? (
                         <>
                           <CardDescription className="mb-4 text-center">
-                            Cari manual bengkel, TSB, atau panduan perbaikan. Sisa percobaan: {MAX_PREMIUM_TRIALS - trialCount}
+                            Cari manual bengkel, TSB, atau panduan perbaikan. Kuota kunjungan tersisa: {MAX_PREMIUM_VISITS - visitCount}
                           </CardDescription>
                           <div className="flex flex-col h-full justify-between gap-2">
                             <Input
@@ -566,7 +578,7 @@ export default function Home() {
                               disabled={isFinding}
                               className="text-base"
                             />
-                            <Button onClick={handleFindManual} disabled={isFinding || !manualQuery || !hasTrialsLeft} size="lg">
+                            <Button onClick={handleFindManual} disabled={isFinding || !manualQuery} size="lg">
                               {isFinding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                               Cari Manual
                             </Button>
@@ -622,7 +634,7 @@ export default function Home() {
                     <FileSearch className="w-6 h-6 text-primary" /> Hasil Pencarian untuk: "{manualQuery}"
                   </CardTitle>
                   <CardDescription>
-                    Menampilkan {manualResult.results.length} hasil yang paling relevan dari Google Drive dan Web.
+                    Menampilkan {manualResult.results.length} hasil yang paling relevan. {isPremiumActive && `Sisa kuota kunjungan: ${MAX_PREMIUM_VISITS - visitCount}`}.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -630,19 +642,19 @@ export default function Home() {
                       <p className="text-muted-foreground text-center">Tidak ada manual yang cocok ditemukan.</p>
                   ) : (
                     manualResult.results.map((result, index) => (
-                      <a key={index} href={result.link} target="_blank" rel="noopener noreferrer" className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div key={index} onClick={() => handleResultClick(result.link)} className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
                         <div className="flex items-start gap-3">
                             {result.source === 'Google Drive' ? <HardDrive className="w-5 h-5 mt-1 text-primary"/> : <LinkIcon className="w-5 h-5 mt-1 text-primary"/>}
                             <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <p className="font-semibold text-base">{result.title}</p>
+                                  <p className="font-semibold text-base text-primary hover:underline">{result.title}</p>
                                   {result.isPdf && <Badge variant="destructive">PDF</Badge>}
                                   <Badge variant="secondary">{result.source}</Badge>
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1">{result.snippet}</p>
                             </div>
                         </div>
-                      </a>
+                      </div>
                     ))
                   )}
                 </CardContent>
