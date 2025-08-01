@@ -27,18 +27,23 @@ export const googleSearch = ai.defineTool(
     }),
   },
   async (input) => {
-    const response = await getJson({
-      engine: 'google',
-      q: input.query,
-      api_key: process.env.SERPAPI_API_KEY,
-    });
+    try {
+        const response = await getJson({
+            engine: 'google',
+            q: input.query,
+            api_key: process.env.SERPAPI_API_KEY,
+        });
 
-    const results = response.organic_results?.map((result: any) => ({
-      title: result.title,
-      link: result.link,
-      snippet: result.snippet,
-    })) || [];
-    
-    return { results };
+        const results = response.organic_results?.map((result: any) => ({
+            title: result.title,
+            link: result.link,
+            snippet: result.snippet,
+        })) || [];
+        
+        return { results };
+    } catch (error) {
+        console.error('Error performing Google search:', error);
+        return { results: [] };
+    }
   }
 );
