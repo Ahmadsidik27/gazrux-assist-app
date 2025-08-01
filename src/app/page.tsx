@@ -290,7 +290,7 @@ export default function Home() {
         if (!result.results || result.results.length === 0) {
           toast({
             variant: 'default',
-            title: 'Tidak Ada Hasil',
+            title: 'Kueri Tidak Ditemukan',
             description: 'Tidak ada manual yang cocok dengan kueri Anda ditemukan.',
           });
         }
@@ -433,13 +433,24 @@ export default function Home() {
                   <CardTitle className="flex items-center gap-2">
                     <FileSearch className="w-6 h-6 text-primary" /> Hasil Pencarian untuk: "{manualQuery}"
                   </CardTitle>
-                  <CardDescription>
-                    Menampilkan {manualResult.results.length} hasil yang paling relevan.
-                  </CardDescription>
+                   {manualResult.results.length > 0 && (
+                        <CardDescription>
+                            Menampilkan {manualResult.results.length} hasil yang paling relevan.
+                        </CardDescription>
+                    )}
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {manualResult.results.length === 0 ? (
-                      <p className="text-muted-foreground text-center">Tidak ada manual yang cocok ditemukan.</p>
+                      <div className="text-center py-10">
+                        <FileSearch className="w-12 h-12 mx-auto text-muted-foreground" />
+                        <h3 className="mt-4 text-lg font-semibold">Kueri Tidak Ditemukan</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            Kami tidak dapat menemukan dokumen apa pun yang cocok dengan pencarian Anda.
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            Tips: Coba periksa ejaan Anda atau gunakan kata kunci yang berbeda.
+                        </p>
+                      </div>
                   ) : (
                     manualResult.results.map((result, index) => (
                       <a 
@@ -525,6 +536,7 @@ export default function Home() {
                                   {testSuggestions[causeInfo.cause]!.data!.split('\n').filter(line => line.trim()).map((test, testIndex) => (
                                     <li key={testIndex}>
                                       <p className="text-sm">{test.replace(/^\d+\.\s*/, '')}</p>
+
                                     </li>
                                   ))}
                                 </ul>
