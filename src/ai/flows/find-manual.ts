@@ -74,6 +74,11 @@ const findManualFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await findManualPrompt(input);
-    return output!;
+    // Jika output null atau tidak ada hasil, kembalikan array kosong.
+    // Ini menggantikan logika fallback yang salah yang sebelumnya mengembalikan data contoh.
+    if (!output || !output.results) {
+        return { results: [] };
+    }
+    return output;
   }
 );
