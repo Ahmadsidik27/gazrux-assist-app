@@ -18,14 +18,13 @@ const FileSearchResultSchema = z.object({
   snippet: z.string().optional().describe("Cuplikan konten file yang relevan dengan kueri."),
 });
 
-// PENTING: ID folder Google Drive yang ditargetkan untuk pencarian.
-// Folder ini, SEMUA sub-folder, DAN SEMUA FILE DI DALAMNYA harus dapat diakses oleh akun layanan atau dibagikan secara publik ("Siapa saja yang memiliki link").
-const DRIVE_FOLDER_ID = '0B9pVa3_DLWq7Q2FNcFdaMHFwdVE';
+// PENTING: ID folder Google Drive diambil dari variabel lingkungan.
+const DRIVE_FOLDER_ID = process.env.DRIVE_FOLDER_ID;
 
 export const searchGoogleDrive = ai.defineTool(
   {
     name: 'searchGoogleDrive',
-    description: `Mencari file di dalam folder Google Drive bengkel yang spesifik (${DRIVE_FOLDER_ID}), termasuk semua sub-foldernya. Berguna untuk menemukan manual perbaikan, buletin layanan teknis (TSB), dan dokumentasi internal lainnya.`,
+    description: `Mencari file di dalam folder Google Drive bengkel yang spesifik, termasuk semua sub-foldernya. Berguna untuk menemukan manual perbaikan, buletin layanan teknis (TSB), dan dokumentasi internal lainnya.`,
     inputSchema: z.object({
       query: z.string().describe('Kueri pencarian (misalnya, "manual perbaikan Honda Civic 2015 P0301").'),
     }),
@@ -34,10 +33,17 @@ export const searchGoogleDrive = ai.defineTool(
     }),
   },
   async (input) => {
+    if (!DRIVE_FOLDER_ID) {
+        console.error('Error: DRIVE_FOLDER_ID tidak diatur di file .env.');
+        return { files: [] };
+    }
     try {
       let credentials;
       if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
         credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+      } else {
+        console.error('Error: GOOGLE_APPLICATION_CREDENTIALS_JSON tidak diatur di file .env.');
+        return { files: [] };
       }
 
       // Inisialisasi Google Drive API Client menggunakan otentikasi yang benar
