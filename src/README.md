@@ -8,20 +8,22 @@ Aplikasi ini **TIDAK AKAN BERFUNGSI** sampai Anda menyelesaikan langkah-langkah 
 
 ### Langkah 1: Buat File Konfigurasi `.env`
 
-Di terminal Anda, jalankan perintah berikut untuk menyalin template ke file konfigurasi yang sebenarnya. **PENTING: File `.env` sudah ada di dalam `.gitignore` sehingga tidak akan pernah ter-commit secara tidak sengaja.**
-
-```bash
-cp .env.template .env
-```
+Di direktori utama proyek Anda, buat file baru dan beri nama `.env`.
 
 ### Langkah 2: Isi File `.env` Anda
 
-Buka file `.env` yang baru saja Anda buat dan isi setiap variabel dengan nilai yang benar.
+Buka file `.env` yang baru saja Anda buat dan isi setiap variabel dengan nilai yang benar. Salin template di bawah ini dan tempelkan ke dalam file `.env` Anda.
+
+```
+SERPAPI_API_KEY=""
+DRIVE_FOLDER_ID=""
+GOOGLE_APPLICATION_CREDENTIALS_JSON=''
+```
 
 #### 1. `SERPAPI_API_KEY` (Untuk Pencarian Web)
 - Kunjungi [SerpApi](https://serpapi.com/) dan daftar untuk mendapatkan akun.
 - Dapatkan kunci API Anda dari dashboard.
-- Tempelkan di file `.env`: `SERPAPI_API_KEY="kunci_api_anda_di_sini"`
+- Tempelkan di file `.env` di dalam tanda kutip: `SERPAPI_API_KEY="kunci_api_anda_di_sini"`
 
 #### 2. `DRIVE_FOLDER_ID` (Folder Manual PDF Anda)
 - Buat sebuah folder di Google Drive Anda.
