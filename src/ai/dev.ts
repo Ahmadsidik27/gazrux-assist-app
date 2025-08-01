@@ -4,4 +4,3 @@ import '@/ai/flows/explain-concept.ts';
 import '@/ai/flows/find-manual.ts';
 import '@/ai/tools/google-search.ts';
 import '@/ai/tools/google-drive-search.ts';
-import '@/ai/tools/search-pdf-content.ts';
