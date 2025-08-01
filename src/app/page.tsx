@@ -271,12 +271,11 @@ function RepairGuideDialog({ open, onOpenChange, testName }: { open: boolean; on
 
 const GazruxLogo = () => (
     <Image
-      src="https://placehold.co/100x100.png"
+      src="/logo.png"
       alt="Gazrux Logo"
       width={40}
       height={40}
       className="rounded-md"
-      data-ai-hint="logo"
     />
 );
 
@@ -663,5 +662,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
