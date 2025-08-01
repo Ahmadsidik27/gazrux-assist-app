@@ -16,10 +16,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { Wrench, BookOpen, Search, AlertCircle, Loader2, HelpCircle, FileType, FileSearch, Link as LinkIcon, HardDrive } from 'lucide-react';
+import { Wrench, BookOpen, Search, AlertCircle, Loader2, HelpCircle, FileType, FileSearch, Link as LinkIcon, HardDrive, Gem } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
@@ -287,13 +288,6 @@ export default function Home() {
       try {
         const result = await findManual(manualQuery);
         setManualResult(result);
-        if (!result.results || result.results.length === 0) {
-          toast({
-            variant: 'default',
-            title: 'Kueri Tidak Ditemukan',
-            description: 'Tidak ada manual yang cocok dengan kueri Anda ditemukan.',
-          });
-        }
       } catch (e) {
         toast({
           variant: 'destructive',
@@ -556,3 +550,4 @@ export default function Home() {
       </main>
     </div>
   );
+}
