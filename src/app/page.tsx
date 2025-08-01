@@ -169,7 +169,13 @@ const GazruxLogo = () => (
     />
 );
 
-export default function Home() {
+export default function Home({
+  params,
+  searchParams,
+}: {
+  params: Record<string, string>;
+  searchParams: Record<string, string>;
+}) {
   const { toast } = useToast();
   const [isAnalyzing, startAnalysisTransition] = useTransition();
   const [isSuggesting, startSuggestionTransition] = useTransition();
