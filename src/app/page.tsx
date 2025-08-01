@@ -270,67 +270,14 @@ function RepairGuideDialog({ open, onOpenChange, testName }: { open: boolean; on
 }
 
 const GazruxLogo = () => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 100 100"
-      className="h-10 w-10 text-primary-foreground"
-      fill="currentColor"
-    >
-      <g transform="translate(50, 50) scale(0.9)">
-        <path
-          d="M0 -48 a 48 48 0 0 1 0 96 a 48 48 0 0 1 0 -96"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="8"
-        />
-        <path
-          d="M-35 -15 L35 -15 L35 15 L-35 15 Z"
-          fill="currentColor"
-          stroke="currentColor"
-          strokeWidth="1"
-        />
-        <text
-          x="0"
-          y="-20"
-          textAnchor="middle"
-          fontSize="10"
-          fill="hsl(var(--primary))"
-          className="font-semibold"
-        >
-          REPAIR SERVICE
-        </text>
-        <text
-          x="0"
-          y="6"
-          textAnchor="middle"
-          fontSize="18"
-          fill="hsl(var(--primary))"
-          className="font-bold tracking-wider"
-        >
-          GAZRUX
-        </text>
-         <text
-          x="0"
-          y="25"
-          textAnchor="middle"
-          fontSize="12"
-          fill="hsl(var(--primary))"
-          className="font-semibold"
-        >
-          ENGINEERING
-        </text>
-        <path
-          d="M -40 25 L -20 35 L 20 35 L 40 25 L 30 15 L -30 15 Z"
-          transform="rotate(15)"
-          fill="currentColor"
-        />
-         <path
-          d="M -40 -25 L -20 -35 L 20 -35 L 40 -25 L 30 -15 L -30 -15 Z"
-          transform="rotate(15)"
-          fill="currentColor"
-        />
-      </g>
-    </svg>
+    <Image
+      src="https://placehold.co/100x100.png"
+      alt="Gazrux Logo"
+      width={40}
+      height={40}
+      className="rounded-md"
+      data-ai-hint="logo"
+    />
 );
 
 
@@ -488,9 +435,7 @@ export default function Home() {
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="bg-primary p-1 rounded-lg">
-                <GazruxLogo />
-              </div>
+              <GazruxLogo />
               <div>
                 <h1 className="text-xl font-bold tracking-tight">Gazrux Assist</h1>
                 <p className="text-sm text-muted-foreground">Partner AI Anda di garasi</p>
@@ -718,3 +663,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
