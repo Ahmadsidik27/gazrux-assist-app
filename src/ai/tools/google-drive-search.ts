@@ -35,8 +35,14 @@ export const searchGoogleDrive = ai.defineTool(
   },
   async (input) => {
     try {
+      let credentials;
+      if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+        credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+      }
+
       // Inisialisasi Google Drive API Client menggunakan otentikasi yang benar
       const auth = new google.auth.GoogleAuth({
+        credentials,
         scopes: ['https://www.googleapis.com/auth/drive.readonly'],
       });
       const drive = google.drive({
@@ -65,7 +71,7 @@ export const searchGoogleDrive = ai.defineTool(
       
       return { files };
     } catch (error: any) {
-      console.error('Error searching Google Drive:', error.message);
+      console.error('Error searching Google Drive:', error);
       // Mengembalikan array kosong jika terjadi error agar aplikasi tidak crash.
       // Pertimbangkan untuk memberikan pesan error yang lebih informatif kepada pengguna jika diperlukan.
       return { files: [] };
