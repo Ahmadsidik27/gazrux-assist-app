@@ -10,7 +10,6 @@
 import { ai } from '@/ai/genkit';
 import { google } from 'googleapis';
 import { z } from 'zod';
-import pdf from 'pdf-parse';
 import { Readable } from 'stream';
 
 // Skema untuk output
@@ -57,6 +56,7 @@ export const searchPdfContentTool = ai.defineTool(
   },
   async (input) => {
     try {
+      const render = (await import('pdf-parse')).default;
       const drive = await getAuthenticatedDriveClient();
 
       // Unduh file dari Google Drive
@@ -68,7 +68,7 @@ export const searchPdfContentTool = ai.defineTool(
       const fileBuffer = await streamToBuffer(response.data as Readable);
       
       // Parse konten PDF menjadi teks
-      const data = await pdf(fileBuffer);
+      const data = await render(fileBuffer);
       const content = data.text;
       
       const snippets: string[] = [];
