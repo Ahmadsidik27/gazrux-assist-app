@@ -16,7 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { Wrench, BookOpen, Search, AlertCircle, Loader2, HelpCircle, FileType, FileSearch, Link as LinkIcon, HardDrive, Gem } from 'lucide-react';
+import { Wrench, BookOpen, Search, AlertCircle, Loader2, HelpCircle, FileType, FileSearch, Link as LinkIcon, HardDrive, Gem, Terminal } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -192,8 +192,12 @@ export default function Home({
 
   const [manualQuery, setManualQuery] = useState('');
   const [manualResult, setManualResult] = useState<FindManualOutput | null>(null);
+  
+  const [configError, setConfigError] = useState<string | null>(null);
+
 
   const clearState = (tab: string) => {
+    setConfigError(null);
     if(tab !== 'diagnose') {
       setAnalysis(null);
       setTestSuggestions({});
@@ -211,6 +215,19 @@ export default function Home({
     clearState(value);
   }
 
+  const handleApiError = (error: any) => {
+    const errorMessage = error.message;
+    if (errorMessage.startsWith('Kesalahan Konfigurasi')) {
+      setConfigError(errorMessage);
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Terjadi Kesalahan',
+        description: errorMessage,
+      });
+    }
+  }
+
   const handleDiagnose = async () => {
     if (issueDescription.trim().length < 10) {
       toast({
@@ -224,15 +241,12 @@ export default function Home({
     startAnalysisTransition(async () => {
       setAnalysis(null);
       setTestSuggestions({});
+      setConfigError(null);
       try {
         const result = await analyzeIssue(issueDescription);
         setAnalysis(result);
       } catch (e: any) {
-        toast({
-          variant: 'destructive',
-          title: e.message.startsWith('Kesalahan Konfigurasi') ? 'Kesalahan Konfigurasi' : 'Analisis Gagal',
-          description: e.message,
-        });
+        handleApiError(e);
       }
     });
   };
@@ -266,15 +280,12 @@ export default function Home({
     }
     startExplanationTransition(async () => {
       setKnowledgeResult(null);
+      setConfigError(null);
       try {
         const result = await explainConcept(knowledgeQuery);
         setKnowledgeResult(result);
       } catch (e: any) {
-        toast({
-          variant: 'destructive',
-          title: e.message.startsWith('Kesalahan Konfigurasi') ? 'Kesalahan Konfigurasi' : 'Penjelasan Gagal',
-          description: e.message,
-        });
+        handleApiError(e);
       }
     });
   };
@@ -291,15 +302,12 @@ export default function Home({
 
     startFindingTransition(async () => {
       setManualResult(null);
+      setConfigError(null);
       try {
         const result = await findManual(manualQuery);
         setManualResult(result);
       } catch (e: any) {
-        toast({
-          variant: 'destructive',
-          title: e.message.startsWith('Kesalahan Konfigurasi') ? 'Kesalahan Konfigurasi' : 'Pencarian Gagal',
-          description: e.message,
-        });
+        handleApiError(e);
       }
     });
   };
@@ -320,6 +328,23 @@ export default function Home({
       </CardContent>
     </Card>
   );
+
+  const ConfigErrorAlert = ({ message }: { message: string | null }) => {
+    if (!message) return null;
+    
+    return (
+      <div className="mt-6">
+        <Alert variant="destructive">
+          <Terminal className="h-4 w-4" />
+          <AlertTitle>Kesalahan Konfigurasi Terdeteksi</AlertTitle>
+          <AlertDescription>
+            <p>{message}</p>
+            <p className="mt-2">Silakan periksa file `.env` Anda dan pastikan semua variabel yang diperlukan sudah benar. Lihat `README.md` untuk panduan lengkap.</p>
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -409,6 +434,9 @@ export default function Home({
                 </CardContent>
             </Tabs>
           </Card>
+          
+          <ConfigErrorAlert message={configError} />
+
 
            {/* --- Universal Results Area --- */}
            <div className="mt-8">
