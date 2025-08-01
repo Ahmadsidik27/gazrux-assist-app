@@ -416,13 +416,20 @@ export default function Home() {
   };
 
   const handleResultClick = (url: string) => {
-    if (!isPremiumActive || !hasVisitsLeft) {
+    if (!isPremiumActive) {
+       toast({
+        variant: "destructive",
+        title: "Fitur Premium",
+        description: "Aktifkan uji coba gratis untuk mengakses tautan ini.",
+      });
+      return;
+    }
+
+    if (!hasVisitsLeft) {
       toast({
         variant: "destructive",
         title: "Akses Ditolak",
-        description: isPremiumActive 
-          ? "Anda telah menggunakan semua kuota kunjungan gratis."
-          : "Aktifkan uji coba gratis untuk mengakses tautan ini.",
+        description: "Anda telah menggunakan semua kuota kunjungan gratis.",
       });
       return;
     }
@@ -568,7 +575,7 @@ export default function Home() {
                       {isPremiumActive ? (
                         <>
                           <CardDescription className="mb-4 text-center">
-                            Cari manual bengkel, TSB, atau panduan perbaikan. Kuota kunjungan tersisa: {MAX_PREMIUM_VISITS - visitCount}
+                            Cari manual bengkel, TSB, atau panduan perbaikan. Kuota kunjungan tersisa: {hasVisitsLeft ? MAX_PREMIUM_VISITS - visitCount : 0}
                           </CardDescription>
                           <div className="flex flex-col h-full justify-between gap-2">
                             <Input
@@ -634,7 +641,7 @@ export default function Home() {
                     <FileSearch className="w-6 h-6 text-primary" /> Hasil Pencarian untuk: "{manualQuery}"
                   </CardTitle>
                   <CardDescription>
-                    Menampilkan {manualResult.results.length} hasil yang paling relevan. {isPremiumActive && `Sisa kuota kunjungan: ${MAX_PREMIUM_VISITS - visitCount}`}.
+                    Menampilkan {manualResult.results.length} hasil yang paling relevan. {isPremiumActive && `Sisa kuota kunjungan: ${hasVisitsLeft ? MAX_PREMIUM_VISITS - visitCount : 0}`}.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
