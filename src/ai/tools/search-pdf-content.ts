@@ -19,10 +19,11 @@ const PdfSearchResultSchema = z.object({
 });
 
 async function getAuthenticatedDriveClient() {
-  let credentials;
-  if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-    credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+  if (!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+    throw new Error('GOOGLE_APPLICATION_CREDENTIALS_JSON tidak diatur.');
   }
+
+  const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
 
   const auth = new google.auth.GoogleAuth({
     credentials,

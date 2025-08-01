@@ -21,6 +21,24 @@ const FileSearchResultSchema = z.object({
 // PENTING: ID folder Google Drive diambil dari variabel lingkungan.
 const DRIVE_FOLDER_ID = process.env.DRIVE_FOLDER_ID;
 
+async function getAuthenticatedDriveClient() {
+  if (!process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+    throw new Error('GOOGLE_APPLICATION_CREDENTIALS_JSON tidak diatur.');
+  }
+
+  const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+  });
+
+  return google.drive({
+    version: 'v3',
+    auth: auth,
+  });
+}
+
 export const searchGoogleDrive = ai.defineTool(
   {
     name: 'searchGoogleDrive',
@@ -34,27 +52,11 @@ export const searchGoogleDrive = ai.defineTool(
   },
   async (input) => {
     if (!DRIVE_FOLDER_ID) {
-        console.error('Error: DRIVE_FOLDER_ID tidak diatur di file .env.');
+        console.error('Error: DRIVE_FOLDER_ID tidak diatur di file .env atau variabel lingkungan.');
         return { files: [] };
     }
     try {
-      let credentials;
-      if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-        credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-      } else {
-        console.error('Error: GOOGLE_APPLICATION_CREDENTIALS_JSON tidak diatur di file .env.');
-        return { files: [] };
-      }
-
-      // Inisialisasi Google Drive API Client menggunakan otentikasi yang benar
-      const auth = new google.auth.GoogleAuth({
-        credentials,
-        scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-      });
-      const drive = google.drive({
-        version: 'v3',
-        auth: auth, 
-      });
+      const drive = await getAuthenticatedDriveClient();
 
       // Kueri ini membatasi pencarian ke folder yang ditentukan dan semua sub-foldernya, lalu mencari berdasarkan nama atau konten.
       const searchQuery = `'${DRIVE_FOLDER_ID}' in parents and (fullText contains '${input.query}' or name contains '${input.query}')`;
