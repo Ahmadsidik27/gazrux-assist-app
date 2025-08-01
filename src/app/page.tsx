@@ -270,20 +270,67 @@ function RepairGuideDialog({ open, onOpenChange, testName }: { open: boolean; on
 }
 
 const GazruxLogo = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className="h-8 w-8 text-primary-foreground"
-    style={{ transform: 'rotate(-15deg)' }}
-  >
-    <g transform="rotate(15, 12, 12)">
-      <path d="M19.46,12.55,17.3,10.1a1,1,0,0,0-1.42,0L4.54,21.46a1,1,0,0,0,0,1.42L6.9,25.1a1,1,0,0,0,1.42,0L19.68,13.9a1,1,0,0,0,0-1.42ZM8,22.88l-1.46-1.46L13.1,14.85,14.5,16.27Z" transform="translate(-2 -3.5)" />
-      <path d="M25.32,6.85,22.8,4.32a1,1,0,0,0-1.42,0L12.53,13.2a1,1,0,0,0,0,1.42L15,16.85a1,1,0,0,0,1.42,0L25.32,8.27a1,1,0,0,0,0-1.42ZM14.24,14L13.1,12.89l5.63-5.63L20.14,8.7Z" transform="translate(-2 -3.5)" />
-      <path d="M13.41,2,10.24,5.17a3,3,0,0,0,4.24,4.24L17.66,6.23A5,5,0,1,0,13.41,2Zm1.56,6.33a1,1,0,1,1,0-1.41,1,1,0,0,1,0,1.41Z" transform="translate(-2 -3.5)" />
-      <path d="M11.72,13.2a1,1,0,0,0-1.42,0l-9,9A1,1,0,0,0,2.68,24H7.32a1,1,0,0,0,.71-.29l9-9a1,1,0,0,0,0-1.42Z" transform="translate(-2 -3.5)" />
-    </g>
-  </svg>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 100 100"
+      className="h-10 w-10 text-primary-foreground"
+      fill="currentColor"
+    >
+      <g transform="translate(50, 50) scale(0.9)">
+        <path
+          d="M0 -48 a 48 48 0 0 1 0 96 a 48 48 0 0 1 0 -96"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="8"
+        />
+        <path
+          d="M-35 -15 L35 -15 L35 15 L-35 15 Z"
+          fill="currentColor"
+          stroke="currentColor"
+          strokeWidth="1"
+        />
+        <text
+          x="0"
+          y="-20"
+          textAnchor="middle"
+          fontSize="10"
+          fill="hsl(var(--primary))"
+          className="font-semibold"
+        >
+          REPAIR SERVICE
+        </text>
+        <text
+          x="0"
+          y="6"
+          textAnchor="middle"
+          fontSize="18"
+          fill="hsl(var(--primary))"
+          className="font-bold tracking-wider"
+        >
+          GAZRUX
+        </text>
+         <text
+          x="0"
+          y="25"
+          textAnchor="middle"
+          fontSize="12"
+          fill="hsl(var(--primary))"
+          className="font-semibold"
+        >
+          ENGINEERING
+        </text>
+        <path
+          d="M -40 25 L -20 35 L 20 35 L 40 25 L 30 15 L -30 15 Z"
+          transform="rotate(15)"
+          fill="currentColor"
+        />
+         <path
+          d="M -40 -25 L -20 -35 L 20 -35 L 40 -25 L 30 -15 L -30 -15 Z"
+          transform="rotate(15)"
+          fill="currentColor"
+        />
+      </g>
+    </svg>
 );
 
 
@@ -441,7 +488,7 @@ export default function Home() {
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="bg-primary p-2 rounded-lg">
+              <div className="bg-primary p-1 rounded-lg">
                 <GazruxLogo />
               </div>
               <div>
