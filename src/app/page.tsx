@@ -14,13 +14,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal, HelpCircle, FileType, FileSearch, Link as LinkIcon, HardDrive } from 'lucide-react';
+import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal, HelpCircle, FileType, FileSearch, Link as LinkIcon, HardDrive, Gem, Sparkles } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
@@ -297,6 +298,8 @@ export default function Home() {
   const [manualQuery, setManualQuery] = useState('');
   const [manualResult, setManualResult] = useState<FindManualOutput | null>(null);
 
+  const [isPremium, setIsPremium] = useState(false);
+
 
   const clearState = (tab: string) => {
     if(tab !== 'diagnose') {
@@ -408,6 +411,14 @@ export default function Home() {
     });
   };
 
+  const handleActivatePremium = () => {
+    setIsPremium(true);
+    toast({
+      title: 'Fitur Premium Diaktifkan!',
+      description: 'Anda sekarang memiliki akses ke Workshop Manual.',
+    });
+  };
+
   const renderSkeleton = () => (
     <Card className="mt-8">
       <CardHeader>
@@ -448,7 +459,7 @@ export default function Home() {
                 <CardHeader>
                     <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="diagnose"><Wrench className="w-4 h-4 mr-2"/>Diagnosis</TabsTrigger>
-                        <TabsTrigger value="manuals"><FileSearch className="w-4 h-4 mr-2"/>Cari Manual</TabsTrigger>
+                        <TabsTrigger value="manuals" className="flex items-center gap-2"><Gem className="w-4 h-4 text-accent-foreground/80"/>Workshop Manual</TabsTrigger>
                         <TabsTrigger value="knowledge"><BookOpen className="w-4 h-4 mr-2"/>Pusat Pengetahuan</TabsTrigger>
                     </TabsList>
                 </CardHeader>
@@ -475,20 +486,58 @@ export default function Home() {
                     
                     {/* Manuals Tab */}
                     <TabsContent value="manuals">
-                         <CardDescription className="mb-4 text-center">Cari manual bengkel, TSB, atau panduan perbaikan.</CardDescription>
-                         <div className="flex flex-col h-full justify-between gap-2">
-                            <Input
-                                placeholder="contoh: 'manual perbaikan Toyota Avanza'"
-                                value={manualQuery}
-                                onChange={(e) => setManualQuery(e.target.value)}
-                                disabled={isFinding}
-                                className="text-base"
-                            />
-                            <Button onClick={handleFindManual} disabled={isFinding || !manualQuery} size="lg">
-                                {isFinding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Cari Manual
-                            </Button>
-                        </div>
+                        {isPremium ? (
+                            <>
+                                <CardDescription className="mb-4 text-center">Cari manual bengkel, TSB, atau panduan perbaikan.</CardDescription>
+                                <div className="flex flex-col h-full justify-between gap-2">
+                                    <Input
+                                        placeholder="contoh: 'manual perbaikan Toyota Avanza'"
+                                        value={manualQuery}
+                                        onChange={(e) => setManualQuery(e.target.value)}
+                                        disabled={isFinding}
+                                        className="text-base"
+                                    />
+                                    <Button onClick={handleFindManual} disabled={isFinding || !manualQuery} size="lg">
+                                        {isFinding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Cari Manual
+                                    </Button>
+                                </div>
+                            </>
+                        ) : (
+                             <Card className="text-center bg-muted/50 border-dashed">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center justify-center gap-2 text-accent-foreground">
+                                        <Gem className="w-6 h-6"/> Fitur Premium
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Akses ribuan manual perbaikan resmi, TSB, dan diagram kelistrikan langsung dari database kami.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                     <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                                            <Sparkles className="mr-2 h-4 w-4"/>Mulai Uji Coba Gratis
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Aktifkan Fitur Premium?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Dengan mengaktifkan, Anda akan mendapatkan akses penuh ke fitur Workshop Manual. Tidak ada biaya yang akan dikenakan untuk simulasi ini.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Batal</AlertDialogCancel>
+                                          <AlertDialogAction onClick={handleActivatePremium}>
+                                            Ya, Aktifkan
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                </CardContent>
+                            </Card>
+                        )}
                     </TabsContent>
 
                     {/* Knowledge Tab */}
@@ -645,3 +694,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
