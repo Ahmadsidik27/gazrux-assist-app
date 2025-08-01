@@ -22,6 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Wrench, Lightbulb, Car, FileText, Search, AlertCircle, Loader2, ChevronsRight, FileCog, BookOpen, Settings, SlidersHorizontal, HelpCircle, FileType, FileSearch, Link as LinkIcon, HardDrive } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 type TestSuggestionsState = { [cause: string]: { loading: boolean; data: string | null; error: string | null } };
 
@@ -292,7 +294,7 @@ export default function Home() {
   const [isExplaining, startExplanationTransition] = useTransition();
   const [isFinding, startFindingTransition] = useTransition();
 
-
+  const [activeTab, setActiveTab] = useState('diagnose');
   const [issueDescription, setIssueDescription] = useState('');
   const [analysis, setAnalysis] = useState<AnalyzeIssueOutput | null>(null);
   const [testSuggestions, setTestSuggestions] = useState<TestSuggestionsState>({});
@@ -306,11 +308,22 @@ export default function Home() {
   const [manualResult, setManualResult] = useState<FindManualOutput | null>(null);
 
 
-  const clearState = () => {
-    setAnalysis(null);
-    setTestSuggestions({});
-    setKnowledgeResult(null);
-    setManualResult(null);
+  const clearState = (tab: string) => {
+    if(tab !== 'diagnose') {
+      setAnalysis(null);
+      setTestSuggestions({});
+    }
+    if (tab !== 'knowledge') {
+      setKnowledgeResult(null);
+    }
+    if(tab !== 'manuals') {
+      setManualResult(null);
+    }
+  }
+  
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    clearState(value);
   }
 
   const handleDiagnose = async () => {
@@ -324,7 +337,8 @@ export default function Home() {
     }
     
     startAnalysisTransition(async () => {
-      clearState();
+      setAnalysis(null);
+      setTestSuggestions({});
       try {
         const result = await analyzeIssue(issueDescription);
         setAnalysis(result);
@@ -366,7 +380,7 @@ export default function Home() {
       return;
     }
     startExplanationTransition(async () => {
-      clearState();
+      setKnowledgeResult(null);
       try {
         const result = await explainConcept(knowledgeQuery);
         setKnowledgeResult(result);
@@ -390,7 +404,7 @@ export default function Home() {
       return;
     }
     startFindingTransition(async () => {
-      clearState();
+      setManualResult(null);
       try {
         const result = await findManual(manualQuery);
         setManualResult(result);
@@ -405,7 +419,7 @@ export default function Home() {
   };
 
   const renderSkeleton = () => (
-    <Card>
+    <Card className="mt-8">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
             <Skeleton className="h-6 w-6 rounded-full" />
@@ -436,10 +450,6 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-               <div className="relative w-48 hidden md:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Cari manual (simulasi)" className="pl-9 bg-muted border-muted" />
-              </div>
               <div className="flex items-center space-x-2">
                 <Label htmlFor="beginner-mode" className="text-sm font-medium whitespace-nowrap">Mode Pemula</Label>
                 <Switch id="beginner-mode" checked={isBeginnerMode} onCheckedChange={setIsBeginnerMode} />
@@ -450,36 +460,81 @@ export default function Home() {
       </header>
 
       <main className="flex-1 container mx-auto p-4 md:p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Main Column */}
-          <div className="lg:col-span-2 space-y-8">
-            <Card className="shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Wrench className="w-6 h-6 text-primary"/> Alat Diagnosis</CardTitle>
-                <CardDescription>Jelaskan masalah kendaraan untuk mendapatkan analisis dan kemungkinan penyebab.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid w-full gap-2">
-                  <Textarea
-                    placeholder="contoh: 'Honda Civic 2015. Bunyi klik saat start, tapi mesin tidak mau berputar. Lampu dasbor menyala...'"
-                    rows={5}
-                    value={issueDescription}
-                    onChange={(e) => setIssueDescription(e.target.value)}
-                    disabled={isAnalyzing}
-                    className="text-base"
-                  />
-                  <Button onClick={handleDiagnose} disabled={isAnalyzing || !issueDescription} size="lg">
-                    {isAnalyzing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {isAnalyzing ? 'Menganalisis...' : 'Diagnosis Masalah'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="max-w-4xl mx-auto">
+          <Card className="shadow-lg">
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
+                <CardHeader>
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="diagnose"><Wrench className="w-4 h-4 mr-2"/>Diagnosis</TabsTrigger>
+                        <TabsTrigger value="manuals"><FileSearch className="w-4 h-4 mr-2"/>Cari Manual</TabsTrigger>
+                        <TabsTrigger value="knowledge"><BookOpen className="w-4 h-4 mr-2"/>Pusat Pengetahuan</TabsTrigger>
+                    </TabsList>
+                </CardHeader>
 
+                <CardContent>
+                    {/* Diagnosis Tab */}
+                    <TabsContent value="diagnose">
+                         <CardDescription className="mb-4 text-center">Jelaskan masalah kendaraan untuk mendapatkan analisis dan kemungkinan penyebab.</CardDescription>
+                         <div className="grid w-full gap-2">
+                            <Textarea
+                                placeholder="contoh: 'Honda Civic 2015. Bunyi klik saat start, tapi mesin tidak mau berputar. Lampu dasbor menyala...'"
+                                rows={5}
+                                value={issueDescription}
+                                onChange={(e) => setIssueDescription(e.target.value)}
+                                disabled={isAnalyzing}
+                                className="text-base"
+                            />
+                            <Button onClick={handleDiagnose} disabled={isAnalyzing || !issueDescription} size="lg">
+                                {isAnalyzing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {isAnalyzing ? 'Menganalisis...' : 'Diagnosis Masalah'}
+                            </Button>
+                        </div>
+                    </TabsContent>
+                    
+                    {/* Manuals Tab */}
+                    <TabsContent value="manuals">
+                         <CardDescription className="mb-4 text-center">Cari manual bengkel, TSB, atau panduan perbaikan.</CardDescription>
+                         <div className="flex flex-col h-full justify-between gap-2">
+                            <Input
+                                placeholder="contoh: 'manual perbaikan Toyota Avanza'"
+                                value={manualQuery}
+                                onChange={(e) => setManualQuery(e.target.value)}
+                                disabled={isFinding}
+                                className="text-base"
+                            />
+                            <Button onClick={handleFindManual} disabled={isFinding || !manualQuery} size="lg">
+                                {isFinding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Cari Manual
+                            </Button>
+                        </div>
+                    </TabsContent>
+
+                    {/* Knowledge Tab */}
+                    <TabsContent value="knowledge">
+                        <CardDescription className="mb-4 text-center">Punya pertanyaan tentang teknologi atau istilah otomotif?</CardDescription>
+                        <div className="flex flex-col h-full justify-between gap-2">
+                          <Input
+                            placeholder="contoh: 'Apa itu ADAS?'"
+                            value={knowledgeQuery}
+                            onChange={(e) => setKnowledgeQuery(e.target.value)}
+                            disabled={isExplaining}
+                            className="text-base"
+                          />
+                          <Button onClick={handleExplainConcept} disabled={isExplaining || !knowledgeQuery} size="lg">
+                            {isExplaining && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Jelaskan Konsep
+                          </Button>
+                        </div>
+                    </TabsContent>
+                </CardContent>
+            </Tabs>
+          </Card>
+
+           {/* --- Universal Results Area --- */}
+           <div className="mt-8">
             {(isAnalyzing || isExplaining || isFinding) && renderSkeleton()}
 
-            {knowledgeResult && !isExplaining && (
+            {knowledgeResult && !isExplaining && activeTab === 'knowledge' && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -492,11 +547,11 @@ export default function Home() {
               </Card>
             )}
 
-            {manualResult && !isFinding && (
+            {manualResult && !isFinding && activeTab === 'manuals' && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileSearch className="w-6 h-6 text-primary" /> Hasil Pencarian Manual untuk: "{manualQuery}"
+                    <FileSearch className="w-6 h-6 text-primary" /> Hasil Pencarian untuk: "{manualQuery}"
                   </CardTitle>
                   <CardDescription>
                     Menampilkan {manualResult.results.length} hasil yang paling relevan dari Google Drive dan Web.
@@ -526,7 +581,7 @@ export default function Home() {
               </Card>
             )}
 
-            {analysis && !isAnalyzing && (
+            {analysis && !isAnalyzing && activeTab === 'diagnose' && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><FileText className="w-6 h-6 text-primary" /> Hasil Diagnosis</CardTitle>
@@ -609,54 +664,7 @@ export default function Home() {
                 </CardContent>
               </Card>
             )}
-          </div>
-
-          {/* Side Column */}
-          <div className="lg:col-span-1 space-y-8">
-             <Card className="shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><FileSearch className="w-6 h-6 text-primary"/> Pencari Manual</CardTitle>
-                <CardDescription>Cari manual bengkel, TSB, atau panduan perbaikan.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col h-full justify-between gap-2">
-                  <Input
-                    placeholder="contoh: 'manual perbaikan Toyota Avanza'"
-                    value={manualQuery}
-                    onChange={(e) => setManualQuery(e.target.value)}
-                    disabled={isFinding}
-                    className="text-base"
-                  />
-                  <Button onClick={handleFindManual} disabled={isFinding || !manualQuery} variant="secondary" size="lg">
-                    {isFinding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Cari Manual
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><BookOpen className="w-6 h-6 text-primary"/> Pusat Pengetahuan</CardTitle>
-                <CardDescription>Punya pertanyaan tentang teknologi atau istilah otomotif?</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col h-full justify-between gap-2">
-                  <Input
-                    placeholder="contoh: 'Apa itu ADAS?'"
-                    value={knowledgeQuery}
-                    onChange={(e) => setKnowledgeQuery(e.target.value)}
-                    disabled={isExplaining}
-                    className="text-base"
-                  />
-                  <Button onClick={handleExplainConcept} disabled={isExplaining || !knowledgeQuery} variant="secondary" size="lg">
-                    {isExplaining && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Jelaskan Konsep
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+           </div>
         </div>
       </main>
       <RepairGuideDialog open={!!dialogTest} onOpenChange={(open) => !open && setDialogTest(null)} testName={dialogTest} />
