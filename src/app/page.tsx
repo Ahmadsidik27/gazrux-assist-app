@@ -9,7 +9,7 @@ import type { FindManualOutput } from '@/ai/flows/find-manual';
 
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -278,6 +278,7 @@ const GazruxLogo = () => (
     />
 );
 
+const MAX_PREMIUM_TRIALS = 3;
 
 export default function Home() {
   const { toast } = useToast();
@@ -297,9 +298,11 @@ export default function Home() {
 
   const [manualQuery, setManualQuery] = useState('');
   const [manualResult, setManualResult] = useState<FindManualOutput | null>(null);
-
+  
   const [isPremium, setIsPremium] = useState(false);
+  const [trialCount, setTrialCount] = useState(0);
 
+  const hasTrialsLeft = trialCount < MAX_PREMIUM_TRIALS;
 
   const clearState = (tab: string) => {
     if(tab !== 'diagnose') {
@@ -396,11 +399,23 @@ export default function Home() {
       });
       return;
     }
+    if (!hasTrialsLeft && isPremium) {
+      toast({
+        variant: 'destructive',
+        title: 'Uji Coba Berakhir',
+        description: 'Anda telah menggunakan semua kesempatan uji coba gratis.',
+      });
+      return;
+    }
+
     startFindingTransition(async () => {
       setManualResult(null);
       try {
         const result = await findManual(manualQuery);
         setManualResult(result);
+        if (isPremium) {
+          setTrialCount(prev => prev + 1);
+        }
       } catch (e) {
         toast({
           variant: 'destructive',
@@ -413,10 +428,62 @@ export default function Home() {
 
   const handleActivatePremium = () => {
     setIsPremium(true);
+    setTrialCount(0);
     toast({
-      title: 'Fitur Premium Diaktifkan!',
-      description: 'Anda sekarang memiliki akses ke Workshop Manual.',
+      title: 'Uji Coba Gratis Diaktifkan!',
+      description: `Anda memiliki ${MAX_PREMIUM_TRIALS} kali pencarian manual gratis.`,
     });
+  };
+  
+  const Paywall = ({ onActivate }: { onActivate: () => void }) => {
+    const trialsEnded = trialCount >= MAX_PREMIUM_TRIALS;
+    return (
+      <Card className="text-center bg-muted/50 border-dashed">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-center gap-2 text-accent-foreground">
+            <Gem className="w-6 h-6" /> {trialsEnded ? 'Uji Coba Berakhir' : 'Fitur Premium'}
+          </CardTitle>
+          <CardDescription>
+            {trialsEnded 
+              ? 'Anda telah menggunakan semua kesempatan uji coba gratis Anda.'
+              : 'Akses ribuan manual perbaikan resmi, TSB, dan diagram kelistrikan langsung dari database kami.'
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {trialsEnded ? (
+             <Button size="lg" disabled>Hubungi Penjualan</Button>
+          ) : (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                  <Sparkles className="mr-2 h-4 w-4" />Mulai Uji Coba Gratis
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Aktifkan Uji Coba Gratis?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Dengan mengaktifkan, Anda akan mendapatkan {MAX_PREMIUM_TRIALS} kali pencarian gratis untuk fitur Workshop Manual. Tidak ada biaya yang akan dikenakan untuk simulasi ini.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction onClick={onActivate}>
+                    Ya, Aktifkan
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </CardContent>
+        {trialsEnded && (
+            <CardFooter>
+                <p className="text-xs text-muted-foreground">Untuk melanjutkan penggunaan, silakan hubungi tim penjualan kami.</p>
+            </CardFooter>
+        )}
+      </Card>
+    );
   };
 
   const renderSkeleton = () => (
@@ -486,58 +553,28 @@ export default function Home() {
                     
                     {/* Manuals Tab */}
                     <TabsContent value="manuals">
-                        {isPremium ? (
-                            <>
-                                <CardDescription className="mb-4 text-center">Cari manual bengkel, TSB, atau panduan perbaikan.</CardDescription>
-                                <div className="flex flex-col h-full justify-between gap-2">
-                                    <Input
-                                        placeholder="contoh: 'manual perbaikan Toyota Avanza'"
-                                        value={manualQuery}
-                                        onChange={(e) => setManualQuery(e.target.value)}
-                                        disabled={isFinding}
-                                        className="text-base"
-                                    />
-                                    <Button onClick={handleFindManual} disabled={isFinding || !manualQuery} size="lg">
-                                        {isFinding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        Cari Manual
-                                    </Button>
-                                </div>
-                            </>
-                        ) : (
-                             <Card className="text-center bg-muted/50 border-dashed">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center justify-center gap-2 text-accent-foreground">
-                                        <Gem className="w-6 h-6"/> Fitur Premium
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Akses ribuan manual perbaikan resmi, TSB, dan diagram kelistrikan langsung dari database kami.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                     <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                        <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                                            <Sparkles className="mr-2 h-4 w-4"/>Mulai Uji Coba Gratis
-                                        </Button>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                          <AlertDialogTitle>Aktifkan Fitur Premium?</AlertDialogTitle>
-                                          <AlertDialogDescription>
-                                            Dengan mengaktifkan, Anda akan mendapatkan akses penuh ke fitur Workshop Manual. Tidak ada biaya yang akan dikenakan untuk simulasi ini.
-                                          </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                          <AlertDialogCancel>Batal</AlertDialogCancel>
-                                          <AlertDialogAction onClick={handleActivatePremium}>
-                                            Ya, Aktifkan
-                                          </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                    </AlertDialog>
-                                </CardContent>
-                            </Card>
-                        )}
+                      {isPremium && hasTrialsLeft ? (
+                        <>
+                          <CardDescription className="mb-4 text-center">
+                            Cari manual bengkel, TSB, atau panduan perbaikan. Sisa percobaan: {MAX_PREMIUM_TRIALS - trialCount}
+                          </CardDescription>
+                          <div className="flex flex-col h-full justify-between gap-2">
+                            <Input
+                              placeholder="contoh: 'manual perbaikan Toyota Avanza'"
+                              value={manualQuery}
+                              onChange={(e) => setManualQuery(e.target.value)}
+                              disabled={isFinding}
+                              className="text-base"
+                            />
+                            <Button onClick={handleFindManual} disabled={isFinding || !manualQuery || !hasTrialsLeft} size="lg">
+                              {isFinding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                              Cari Manual
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <Paywall onActivate={handleActivatePremium} />
+                      )}
                     </TabsContent>
 
                     {/* Knowledge Tab */}
@@ -694,5 +731,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
